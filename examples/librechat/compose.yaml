@@ -17,7 +17,7 @@
 services:
   # ── Maestro Platform ──────────────────────────────────────────────
   maestro:
-    image: ghcr.io/daltiparmak/maestro
+    image: ghcr.io/altipard/maestro
     ports:
       - "8080:8080"
     configs:
@@ -26,7 +26,7 @@ services:
     restart: unless-stopped
 
   extractor:
-    image: ghcr.io/daltiparmak/maestro-extractor
+    image: ghcr.io/altipard/maestro-extractor
     restart: unless-stopped
 
   # ── LibreChat Stack ───────────────────────────────────────────────
