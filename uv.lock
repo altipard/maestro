@@ -872,6 +872,7 @@ all = [
     { name = "grpcio" },
     { name = "ollama" },
     { name = "openai" },
+    { name = "protobuf" },
     { name = "python-multipart" },
     { name = "pyyaml" },
     { name = "uvicorn", extra = ["standard"] },
@@ -892,6 +893,7 @@ google = [
 ]
 grpc = [
     { name = "grpcio" },
+    { name = "protobuf" },
 ]
 ollama = [
     { name = "ollama" },
@@ -919,6 +921,7 @@ requires-dist = [
     { name = "maestro", extras = ["server", "openai", "anthropic", "google", "ollama", "chroma", "grpc"], marker = "extra == 'all'" },
     { name = "ollama", marker = "extra == 'ollama'", specifier = ">=0.4" },
     { name = "openai", marker = "extra == 'openai'", specifier = ">=1.82" },
+    { name = "protobuf", marker = "extra == 'grpc'", specifier = ">=5.0" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.25" },

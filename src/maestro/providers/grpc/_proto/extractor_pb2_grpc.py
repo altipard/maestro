@@ -4,7 +4,7 @@
 import grpc
 import warnings
 
-import extractor_pb2 as extractor__pb2
+from . import extractor_pb2 as extractor__pb2
 
 GRPC_GENERATED_VERSION = "1.78.0"
 GRPC_VERSION = grpc.__version__
