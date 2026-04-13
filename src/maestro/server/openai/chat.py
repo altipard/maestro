@@ -13,7 +13,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from maestro.config import Config
-from maestro.core.errors import ProviderError, retry_after_from_error, status_code_from_error
+from maestro.core.errors import ProviderError, status_code_from_error
 from maestro.core.models import Accumulator
 from maestro.policy.policy import AccessDeniedError, Action, Resource
 
@@ -58,7 +58,8 @@ def _error(status: int, message: str) -> JSONResponse:
 
 @router.post("/chat/completions", response_model=None)
 async def chat_completions(
-    req: ChatCompletionRequest, request: Request,
+    req: ChatCompletionRequest,
+    request: Request,
 ) -> StreamingResponse | JSONResponse:
     cfg: Config = request.app.state.config
 
@@ -176,9 +177,7 @@ def _stream_response(req, completer, messages, options) -> StreamingResponse:
                             if tc.id:
                                 current_tool_call_id = tc.id
                                 if current_tool_call_id not in tool_call_indices:
-                                    tool_call_indices[current_tool_call_id] = len(
-                                        tool_call_indices
-                                    )
+                                    tool_call_indices[current_tool_call_id] = len(tool_call_indices)
 
                             if current_tool_call_id:
                                 oai_calls.append(
@@ -212,9 +211,7 @@ def _stream_response(req, completer, messages, options) -> StreamingResponse:
             logger.error("streaming error: %s", exc)
             status = status_code_from_error(exc, 500)
             error_type = _oai_error_type(status)
-            err_resp = ErrorResponse(
-                error=ErrorDetail(type=error_type, message=str(exc))
-            )
+            err_resp = ErrorResponse(error=ErrorDetail(type=error_type, message=str(exc)))
             yield f"data: {err_resp.model_dump_json()}\n\n"
             yield "data: [DONE]\n\n"
             return

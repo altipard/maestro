@@ -156,17 +156,19 @@ class TestUsage:
 class TestAccumulatorCacheTokens:
     def test_accumulates_cache_tokens(self) -> None:
         acc = Accumulator()
-        acc.add(Completion(
-            id="c1",
-            model="m",
-            message=Message(role=Role.ASSISTANT, content=[Content(text="hi")]),
-            usage=Usage(
-                input_tokens=100,
-                output_tokens=50,
-                cache_read_input_tokens=80,
-                cache_creation_input_tokens=20,
-            ),
-        ))
+        acc.add(
+            Completion(
+                id="c1",
+                model="m",
+                message=Message(role=Role.ASSISTANT, content=[Content(text="hi")]),
+                usage=Usage(
+                    input_tokens=100,
+                    output_tokens=50,
+                    cache_read_input_tokens=80,
+                    cache_creation_input_tokens=20,
+                ),
+            )
+        )
 
         result = acc.result
         assert result.usage is not None
@@ -175,24 +177,32 @@ class TestAccumulatorCacheTokens:
 
     def test_max_cache_tokens_across_chunks(self) -> None:
         acc = Accumulator()
-        acc.add(Completion(
-            id="c1",
-            model="m",
-            message=Message(role=Role.ASSISTANT, content=[Content(text="a")]),
-            usage=Usage(
-                input_tokens=100, output_tokens=20,
-                cache_read_input_tokens=50, cache_creation_input_tokens=10,
-            ),
-        ))
-        acc.add(Completion(
-            id="c1",
-            model="m",
-            message=Message(role=Role.ASSISTANT, content=[Content(text="b")]),
-            usage=Usage(
-                input_tokens=100, output_tokens=40,
-                cache_read_input_tokens=80, cache_creation_input_tokens=5,
-            ),
-        ))
+        acc.add(
+            Completion(
+                id="c1",
+                model="m",
+                message=Message(role=Role.ASSISTANT, content=[Content(text="a")]),
+                usage=Usage(
+                    input_tokens=100,
+                    output_tokens=20,
+                    cache_read_input_tokens=50,
+                    cache_creation_input_tokens=10,
+                ),
+            )
+        )
+        acc.add(
+            Completion(
+                id="c1",
+                model="m",
+                message=Message(role=Role.ASSISTANT, content=[Content(text="b")]),
+                usage=Usage(
+                    input_tokens=100,
+                    output_tokens=40,
+                    cache_read_input_tokens=80,
+                    cache_creation_input_tokens=5,
+                ),
+            )
+        )
 
         result = acc.result
         assert result.usage is not None

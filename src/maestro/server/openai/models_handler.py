@@ -22,9 +22,7 @@ async def list_models(request: Request) -> JSONResponse:
     result = ModelList()
 
     for model_id in cfg.models():
-        result.data.append(
-            ModelObject(id=model_id, created=now, owned_by="maestro")
-        )
+        result.data.append(ModelObject(id=model_id, created=now, owned_by="maestro"))
 
     return JSONResponse(content=result.model_dump())
 

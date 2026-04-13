@@ -37,12 +37,14 @@ class Embedder:
         result = Embedding(model=self._model)
 
         if response.usage and response.usage.prompt_tokens:
-            result = result.model_copy(update={
-                "usage": Usage(
-                    input_tokens=response.usage.prompt_tokens,
-                    output_tokens=0,
-                ),
-            })
+            result = result.model_copy(
+                update={
+                    "usage": Usage(
+                        input_tokens=response.usage.prompt_tokens,
+                        output_tokens=0,
+                    ),
+                }
+            )
 
         embeddings = [item.embedding for item in response.data]
         result = result.model_copy(update={"embeddings": embeddings})

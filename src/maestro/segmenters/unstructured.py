@@ -58,9 +58,7 @@ class UnstructuredSegmenter:
 
         if resp.status_code != 200:
             detail = resp.text or httpx.codes.get_reason_phrase(resp.status_code)
-            raise RuntimeError(
-                f"Unstructured API error ({resp.status_code}): {detail}"
-            )
+            raise RuntimeError(f"Unstructured API error ({resp.status_code}): {detail}")
 
         elements: list[dict] = resp.json()
 

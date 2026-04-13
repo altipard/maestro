@@ -42,18 +42,14 @@ class TestAuthMiddleware:
         async with AsyncClient(
             transport=ASGITransport(app=secured_app), base_url="http://test"
         ) as client:
-            resp = await client.get(
-                "/test", headers={"Authorization": "Bearer secret-token-123"}
-            )
+            resp = await client.get("/test", headers={"Authorization": "Bearer secret-token-123"})
             assert resp.status_code == 200
 
     async def test_invalid_token_returns_401(self, secured_app):
         async with AsyncClient(
             transport=ASGITransport(app=secured_app), base_url="http://test"
         ) as client:
-            resp = await client.get(
-                "/test", headers={"Authorization": "Bearer wrong-token"}
-            )
+            resp = await client.get("/test", headers={"Authorization": "Bearer wrong-token"})
             assert resp.status_code == 401
             body = resp.json()
             assert body["error"]["type"] == "authentication_error"
@@ -69,16 +65,12 @@ class TestAuthMiddleware:
         async with AsyncClient(
             transport=ASGITransport(app=secured_app), base_url="http://test"
         ) as client:
-            resp = await client.get(
-                "/test", headers={"Authorization": "Basic abc123"}
-            )
+            resp = await client.get("/test", headers={"Authorization": "Basic abc123"})
             assert resp.status_code == 401
 
     async def test_second_valid_token(self, secured_app):
         async with AsyncClient(
             transport=ASGITransport(app=secured_app), base_url="http://test"
         ) as client:
-            resp = await client.get(
-                "/test", headers={"Authorization": "Bearer another-token"}
-            )
+            resp = await client.get("/test", headers={"Authorization": "Bearer another-token"})
             assert resp.status_code == 200

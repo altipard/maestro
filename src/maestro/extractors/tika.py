@@ -13,10 +13,15 @@ from maestro.core.models import FileData
 
 SUPPORTED_EXTENSIONS: set[str] = {
     ".pdf",
-    ".jpg", ".jpeg", ".png",
-    ".doc", ".docx",
-    ".ppt", ".pptx",
-    ".xls", ".xlsx",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".doc",
+    ".docx",
+    ".ppt",
+    ".pptx",
+    ".xls",
+    ".xlsx",
 }
 
 SUPPORTED_MIME_TYPES: set[str] = {

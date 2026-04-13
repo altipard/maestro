@@ -42,7 +42,9 @@ class MockCompleter:
         ]
 
     async def complete(
-        self, messages: list[Message], options: CompleteOptions | None = None,
+        self,
+        messages: list[Message],
+        options: CompleteOptions | None = None,
     ) -> AsyncIterator[Completion]:
         for chunk in self._chunks:
             yield chunk
@@ -52,7 +54,9 @@ class MockEmbedder:
     """Mock embedder that returns canned embeddings."""
 
     async def embed(
-        self, texts: list[str], options: EmbedOptions | None = None,
+        self,
+        texts: list[str],
+        options: EmbedOptions | None = None,
     ) -> Embedding:
         return Embedding(
             model="mock-embed",
@@ -84,10 +88,13 @@ class TestChatCompletions:
     def test_simple_completion(self) -> None:
         client = _make_client(completer=MockCompleter())
 
-        resp = client.post("/v1/chat/completions", json={
-            "model": "mock-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-        })
+        resp = client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+            },
+        )
 
         assert resp.status_code == 200
         data = resp.json()
@@ -102,10 +109,13 @@ class TestChatCompletions:
     def test_usage_included(self) -> None:
         client = _make_client(completer=MockCompleter())
 
-        resp = client.post("/v1/chat/completions", json={
-            "model": "mock-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-        })
+        resp = client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+            },
+        )
 
         data = resp.json()
         assert data["usage"]["prompt_tokens"] == 10
@@ -134,10 +144,13 @@ class TestChatCompletions:
         ]
         client = _make_client(completer=MockCompleter(chunks=chunks))
 
-        resp = client.post("/v1/chat/completions", json={
-            "model": "mock-model",
-            "messages": [{"role": "user", "content": "Weather?"}],
-        })
+        resp = client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Weather?"}],
+            },
+        )
 
         data = resp.json()
         assert data["choices"][0]["finish_reason"] == "tool_calls"
@@ -149,10 +162,13 @@ class TestChatCompletions:
     def test_model_not_found(self) -> None:
         client = _make_client()  # No providers registered
 
-        resp = client.post("/v1/chat/completions", json={
-            "model": "nonexistent",
-            "messages": [{"role": "user", "content": "Hi"}],
-        })
+        resp = client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "nonexistent",
+                "messages": [{"role": "user", "content": "Hi"}],
+            },
+        )
 
         assert resp.status_code == 400
         assert "not found" in resp.json()["error"]["message"]
@@ -173,13 +189,16 @@ class TestChatCompletions:
         cfg.register("completer", "test-model", CapturingCompleter())
         client = TestClient(create_app(config=cfg))
 
-        client.post("/v1/chat/completions", json={
-            "model": "test-model",
-            "messages": [
-                {"role": "system", "content": "You are helpful."},
-                {"role": "user", "content": "Hi"},
-            ],
-        })
+        client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "test-model",
+                "messages": [
+                    {"role": "system", "content": "You are helpful."},
+                    {"role": "user", "content": "Hi"},
+                ],
+            },
+        )
 
         assert len(received) == 1
         assert received[0][0].role == Role.SYSTEM
@@ -202,17 +221,26 @@ class TestChatCompletions:
         cfg.register("completer", "test-model", CapturingCompleter())
         client = TestClient(create_app(config=cfg))
 
-        client.post("/v1/chat/completions", json={
-            "model": "test-model",
-            "messages": [
-                {"role": "user", "content": "What's the weather?"},
-                {"role": "assistant", "tool_calls": [{
-                    "id": "call_1", "type": "function",
-                    "function": {"name": "get_weather", "arguments": "{}"},
-                }]},
-                {"role": "tool", "tool_call_id": "call_1", "content": "Sunny, 22°C"},
-            ],
-        })
+        client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "test-model",
+                "messages": [
+                    {"role": "user", "content": "What's the weather?"},
+                    {
+                        "role": "assistant",
+                        "tool_calls": [
+                            {
+                                "id": "call_1",
+                                "type": "function",
+                                "function": {"name": "get_weather", "arguments": "{}"},
+                            }
+                        ],
+                    },
+                    {"role": "tool", "tool_call_id": "call_1", "content": "Sunny, 22°C"},
+                ],
+            },
+        )
 
         assert len(received) == 1
         # Tool result message: role=USER, content has tool_result
@@ -230,11 +258,14 @@ class TestChatCompletionsStream:
     def test_streaming_sse_format(self) -> None:
         client = _make_client(completer=MockCompleter())
 
-        resp = client.post("/v1/chat/completions", json={
-            "model": "mock-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-            "stream": True,
-        })
+        resp = client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+                "stream": True,
+            },
+        )
 
         assert resp.status_code == 200
         assert "text/event-stream" in resp.headers["content-type"]
@@ -248,16 +279,18 @@ class TestChatCompletionsStream:
     def test_streaming_chunk_structure(self) -> None:
         client = _make_client(completer=MockCompleter())
 
-        resp = client.post("/v1/chat/completions", json={
-            "model": "mock-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-            "stream": True,
-        })
+        resp = client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+                "stream": True,
+            },
+        )
 
         lines = resp.text.strip().split("\n")
         data_lines = [
-            line for line in lines
-            if line.startswith("data: ") and line != "data: [DONE]"
+            line for line in lines if line.startswith("data: ") and line != "data: [DONE]"
         ]
 
         # First data chunk should have the content
@@ -268,27 +301,33 @@ class TestChatCompletionsStream:
     def test_streaming_multi_chunk(self) -> None:
         """Multiple chunks should produce multiple SSE events."""
         chunks = [
-            Completion(id="c1", model="m", message=Message(
-                role=Role.ASSISTANT, content=[Content(text="Hel")]
-            )),
-            Completion(id="c1", model="m", message=Message(
-                role=Role.ASSISTANT, content=[Content(text="lo!")]
-            )),
+            Completion(
+                id="c1",
+                model="m",
+                message=Message(role=Role.ASSISTANT, content=[Content(text="Hel")]),
+            ),
+            Completion(
+                id="c1",
+                model="m",
+                message=Message(role=Role.ASSISTANT, content=[Content(text="lo!")]),
+            ),
             Completion(id="c1", model="m", usage=Usage(input_tokens=5, output_tokens=3)),
         ]
         client = _make_client(completer=MockCompleter(chunks=chunks))
 
-        resp = client.post("/v1/chat/completions", json={
-            "model": "mock-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-            "stream": True,
-            "stream_options": {"include_usage": True},
-        })
+        resp = client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+                "stream": True,
+                "stream_options": {"include_usage": True},
+            },
+        )
 
         lines = resp.text.strip().split("\n")
         data_lines = [
-            line for line in lines
-            if line.startswith("data: ") and line != "data: [DONE]"
+            line for line in lines if line.startswith("data: ") and line != "data: [DONE]"
         ]
 
         # 2 content chunks + 1 finish + 1 usage = 4
@@ -302,10 +341,13 @@ class TestEmbeddings:
     def test_simple_embedding(self) -> None:
         client = _make_client(embedder=MockEmbedder())
 
-        resp = client.post("/v1/embeddings", json={
-            "model": "mock-embed",
-            "input": "Hello world",
-        })
+        resp = client.post(
+            "/v1/embeddings",
+            json={
+                "model": "mock-embed",
+                "input": "Hello world",
+            },
+        )
 
         assert resp.status_code == 200
         data = resp.json()
@@ -318,10 +360,13 @@ class TestEmbeddings:
     def test_batch_embeddings(self) -> None:
         client = _make_client(embedder=MockEmbedder())
 
-        resp = client.post("/v1/embeddings", json={
-            "model": "mock-embed",
-            "input": ["Hello", "World"],
-        })
+        resp = client.post(
+            "/v1/embeddings",
+            json={
+                "model": "mock-embed",
+                "input": ["Hello", "World"],
+            },
+        )
 
         data = resp.json()
         assert len(data["data"]) == 2
@@ -331,10 +376,13 @@ class TestEmbeddings:
     def test_usage_reported(self) -> None:
         client = _make_client(embedder=MockEmbedder())
 
-        resp = client.post("/v1/embeddings", json={
-            "model": "mock-embed",
-            "input": "test",
-        })
+        resp = client.post(
+            "/v1/embeddings",
+            json={
+                "model": "mock-embed",
+                "input": "test",
+            },
+        )
 
         data = resp.json()
         assert data["usage"]["prompt_tokens"] == 5
@@ -342,21 +390,27 @@ class TestEmbeddings:
     def test_model_not_found(self) -> None:
         client = _make_client()
 
-        resp = client.post("/v1/embeddings", json={
-            "model": "nonexistent",
-            "input": "test",
-        })
+        resp = client.post(
+            "/v1/embeddings",
+            json={
+                "model": "nonexistent",
+                "input": "test",
+            },
+        )
 
         assert resp.status_code == 400
 
     def test_base64_encoding(self) -> None:
         client = _make_client(embedder=MockEmbedder())
 
-        resp = client.post("/v1/embeddings", json={
-            "model": "mock-embed",
-            "input": "test",
-            "encoding_format": "base64",
-        })
+        resp = client.post(
+            "/v1/embeddings",
+            json={
+                "model": "mock-embed",
+                "input": "test",
+                "encoding_format": "base64",
+            },
+        )
 
         data = resp.json()
         assert isinstance(data["data"][0]["embedding"], str)

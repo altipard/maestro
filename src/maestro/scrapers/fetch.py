@@ -13,16 +13,43 @@ from html.parser import HTMLParser
 import httpx
 
 # Elements to remove entirely before text extraction
-_REMOVE_TAGS = frozenset({
-    "script", "style", "noscript", "iframe", "svg", "nav", "footer", "header",
-})
+_REMOVE_TAGS = frozenset(
+    {
+        "script",
+        "style",
+        "noscript",
+        "iframe",
+        "svg",
+        "nav",
+        "footer",
+        "header",
+    }
+)
 
 # Block-level elements that produce line breaks
-_BLOCK_TAGS = frozenset({
-    "p", "div", "br", "hr", "h1", "h2", "h3", "h4", "h5", "h6",
-    "li", "blockquote", "pre", "tr", "dt", "dd", "section",
-    "figure", "figcaption",
-})
+_BLOCK_TAGS = frozenset(
+    {
+        "p",
+        "div",
+        "br",
+        "hr",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "li",
+        "blockquote",
+        "pre",
+        "tr",
+        "dt",
+        "dd",
+        "section",
+        "figure",
+        "figcaption",
+    }
+)
 
 # Attributes that indicate non-content elements
 _REMOVE_ATTRS = {

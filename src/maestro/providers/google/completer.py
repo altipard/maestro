@@ -88,7 +88,9 @@ class Completer:
     # ── Request building ──────────────────────────────────────────
 
     def _build_config(
-        self, messages: list[Message], options: CompleteOptions,
+        self,
+        messages: list[Message],
+        options: CompleteOptions,
     ) -> types.GenerateContentConfig:
         config: dict[str, Any] = {}
 
@@ -144,7 +146,8 @@ class Completer:
         return "\n\n".join(parts) if parts else None
 
     def _convert_messages(
-        self, messages: list[Message],
+        self,
+        messages: list[Message],
     ) -> list[types.Content]:
         """Convert internal Messages to Gemini content format."""
         result: list[types.Content] = []
@@ -170,12 +173,14 @@ class Completer:
                             if not isinstance(data, dict):
                                 data = {"data": data}
 
-                            parts.append(types.Part(
-                                function_response=types.FunctionResponse(
-                                    name=c.tool_result.id,
-                                    response=data,
+                            parts.append(
+                                types.Part(
+                                    function_response=types.FunctionResponse(
+                                        name=c.tool_result.id,
+                                        response=data,
+                                    )
                                 )
-                            ))
+                            )
 
                     if parts:
                         result.append(types.Content(role="user", parts=parts))
@@ -194,12 +199,14 @@ class Completer:
                                 except (json.JSONDecodeError, TypeError):
                                     pass
 
-                            parts.append(types.Part(
-                                function_call=types.FunctionCall(
-                                    name=c.tool_call.name,
-                                    args=args,
+                            parts.append(
+                                types.Part(
+                                    function_call=types.FunctionCall(
+                                        name=c.tool_call.name,
+                                        args=args,
+                                    )
                                 )
-                            ))
+                            )
 
                     if parts:
                         result.append(types.Content(role="model", parts=parts))
@@ -207,7 +214,8 @@ class Completer:
         return result
 
     def _convert_tools(
-        self, tools: list | None,
+        self,
+        tools: list | None,
     ) -> list[types.Tool] | None:
         """Convert internal Tool list to Gemini tool format."""
         if not tools:
@@ -217,11 +225,13 @@ class Completer:
         for t in tools:
             if not t.name:
                 continue
-            declarations.append(types.FunctionDeclaration(
-                name=t.name,
-                description=t.description or "",
-                parameters=t.parameters or None,
-            ))
+            declarations.append(
+                types.FunctionDeclaration(
+                    name=t.name,
+                    description=t.description or "",
+                    parameters=t.parameters or None,
+                )
+            )
 
         if not declarations:
             return None
@@ -245,13 +255,15 @@ def _to_content(parts: list) -> list[Content]:
 
         if p.function_call:
             args = json.dumps(p.function_call.args) if p.function_call.args else "{}"
-            result.append(Content(
-                tool_call=ToolCall(
-                    id=getattr(p.function_call, "id", "") or p.function_call.name,
-                    name=p.function_call.name,
-                    arguments=args,
+            result.append(
+                Content(
+                    tool_call=ToolCall(
+                        id=getattr(p.function_call, "id", "") or p.function_call.name,
+                        name=p.function_call.name,
+                        arguments=args,
+                    )
                 )
-            ))
+            )
 
     return result
 

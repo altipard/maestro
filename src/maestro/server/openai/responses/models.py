@@ -39,6 +39,7 @@ class FunctionTool(BaseModel):
 
 class ToolChoice(BaseModel):
     """Flexible tool_choice: can be a string or object."""
+
     mode: str = "auto"  # none, auto, required
 
 
@@ -172,6 +173,7 @@ class ReasoningOutput(BaseModel):
 
 class ResponseOutput(BaseModel):
     """A single output item — message, function_call, or reasoning."""
+
     type: str  # message, function_call, reasoning
     # Only one of these will be populated, depending on type.
     message: OutputMessage | None = None

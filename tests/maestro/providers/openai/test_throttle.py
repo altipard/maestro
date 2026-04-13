@@ -1,7 +1,6 @@
 """Tests for the rate-limit throttle transport."""
 
 import httpx
-import pytest
 
 from maestro.providers.openai._throttle import (
     ThrottleTransport,
@@ -75,31 +74,39 @@ class TestCheckLimit:
         assert _check_limit(headers, "requests") == 0
 
     def test_remaining_high(self):
-        headers = httpx.Headers({
-            "x-ratelimit-remaining-requests": "100",
-            "x-ratelimit-limit-requests": "1000",
-        })
+        headers = httpx.Headers(
+            {
+                "x-ratelimit-remaining-requests": "100",
+                "x-ratelimit-limit-requests": "1000",
+            }
+        )
         assert _check_limit(headers, "requests") == 0
 
     def test_remaining_low_with_reset(self):
-        headers = httpx.Headers({
-            "x-ratelimit-remaining-requests": "1",
-            "x-ratelimit-limit-requests": "60",
-            "x-ratelimit-reset-requests": "2s",
-        })
+        headers = httpx.Headers(
+            {
+                "x-ratelimit-remaining-requests": "1",
+                "x-ratelimit-limit-requests": "60",
+                "x-ratelimit-reset-requests": "2s",
+            }
+        )
         assert _check_limit(headers, "requests") == 2.0
 
     def test_remaining_low_no_reset_defaults_to_1s(self):
-        headers = httpx.Headers({
-            "x-ratelimit-remaining-requests": "0",
-            "x-ratelimit-limit-requests": "60",
-        })
+        headers = httpx.Headers(
+            {
+                "x-ratelimit-remaining-requests": "0",
+                "x-ratelimit-limit-requests": "60",
+            }
+        )
         assert _check_limit(headers, "requests") == 1.0
 
     def test_negative_remaining_ignored(self):
-        headers = httpx.Headers({
-            "x-ratelimit-remaining-requests": "-1",
-        })
+        headers = httpx.Headers(
+            {
+                "x-ratelimit-remaining-requests": "-1",
+            }
+        )
         assert _check_limit(headers, "requests") == 0
 
 
@@ -113,21 +120,30 @@ class TestThrottleTransportObserve:
     def test_low_remaining_sets_delay(self):
         transport = ThrottleTransport.__new__(ThrottleTransport)
         transport._wait_until = 0
-        transport._observe(httpx.Headers({
-            "x-ratelimit-remaining-requests": "0",
-            "x-ratelimit-limit-requests": "60",
-            "x-ratelimit-reset-requests": "5s",
-        }))
+        transport._observe(
+            httpx.Headers(
+                {
+                    "x-ratelimit-remaining-requests": "0",
+                    "x-ratelimit-limit-requests": "60",
+                    "x-ratelimit-reset-requests": "5s",
+                }
+            )
+        )
         assert transport._wait_until > 0
 
     def test_delay_capped_at_60s(self):
         import time
+
         transport = ThrottleTransport.__new__(ThrottleTransport)
         transport._wait_until = 0
-        transport._observe(httpx.Headers({
-            "x-ratelimit-remaining-tokens": "0",
-            "x-ratelimit-limit-tokens": "100000",
-            "x-ratelimit-reset-tokens": "5m0s",  # 300s > 60s cap
-        }))
+        transport._observe(
+            httpx.Headers(
+                {
+                    "x-ratelimit-remaining-tokens": "0",
+                    "x-ratelimit-limit-tokens": "100000",
+                    "x-ratelimit-reset-tokens": "5m0s",  # 300s > 60s cap
+                }
+            )
+        )
         # wait_until should be at most ~60s from now
         assert transport._wait_until <= time.monotonic() + 61

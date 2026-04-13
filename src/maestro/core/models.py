@@ -208,9 +208,7 @@ class Accumulator:
                     if self._reasoning is None:
                         self._reasoning = Reasoning()
                     if c.reasoning.id:
-                        self._reasoning = self._reasoning.model_copy(
-                            update={"id": c.reasoning.id}
-                        )
+                        self._reasoning = self._reasoning.model_copy(update={"id": c.reasoning.id})
                     self._reasoning = self._reasoning.model_copy(
                         update={
                             "text": self._reasoning.text + c.reasoning.text,

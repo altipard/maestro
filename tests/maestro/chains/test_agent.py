@@ -67,24 +67,24 @@ class _MockCompleter:
 class TestAgentChain:
     async def test_simple_no_tools(self) -> None:
         """Chain with no tools passes through to completer."""
-        completer = _MockCompleter([
+        completer = _MockCompleter(
             [
-                Completion(
-                    model="test",
-                    message=Message(
-                        role=Role.ASSISTANT,
-                        content=[Content(text="Hello!")],
+                [
+                    Completion(
+                        model="test",
+                        message=Message(
+                            role=Role.ASSISTANT,
+                            content=[Content(text="Hello!")],
+                        ),
+                        usage=Usage(input_tokens=10, output_tokens=5),
                     ),
-                    usage=Usage(input_tokens=10, output_tokens=5),
-                ),
-            ],
-        ])
+                ],
+            ]
+        )
 
         chain = AgentChain(completer, model="test-model")
 
-        result = await Accumulator.collect(
-            chain.complete([Message.user("Hi")])
-        )
+        result = await Accumulator.collect(chain.complete([Message.user("Hi")]))
 
         assert result.message is not None
         assert "Hello!" in result.message.text
@@ -104,36 +104,36 @@ class TestAgentChain:
 
         # First call: model returns a tool call
         # Second call: model returns text
-        completer = _MockCompleter([
+        completer = _MockCompleter(
             [
-                Completion(
-                    model="test",
-                    message=Message(
-                        role=Role.ASSISTANT,
-                        content=[
-                            Content(
-                                tool_call=ToolCall(
-                                    id="tc_1",
-                                    name="get_weather",
-                                    arguments='{"city": "Berlin"}',
+                [
+                    Completion(
+                        model="test",
+                        message=Message(
+                            role=Role.ASSISTANT,
+                            content=[
+                                Content(
+                                    tool_call=ToolCall(
+                                        id="tc_1",
+                                        name="get_weather",
+                                        arguments='{"city": "Berlin"}',
+                                    )
                                 )
-                            )
-                        ],
+                            ],
+                        ),
                     ),
-                ),
-            ],
-            [
-                Completion(
-                    model="test",
-                    message=Message(
-                        role=Role.ASSISTANT,
-                        content=[
-                            Content(text="It's 20°C in Berlin.")
-                        ],
+                ],
+                [
+                    Completion(
+                        model="test",
+                        message=Message(
+                            role=Role.ASSISTANT,
+                            content=[Content(text="It's 20°C in Berlin.")],
+                        ),
                     ),
-                ),
-            ],
-        ])
+                ],
+            ]
+        )
 
         chain = AgentChain(
             completer,
@@ -162,34 +162,36 @@ class TestAgentChain:
             results={"internal_tool": {"done": True}},
         )
 
-        completer = _MockCompleter([
+        completer = _MockCompleter(
             [
-                Completion(
-                    model="test",
-                    message=Message(
-                        role=Role.ASSISTANT,
-                        content=[
-                            Content(
-                                tool_call=ToolCall(
-                                    id="tc_1",
-                                    name="internal_tool",
-                                    arguments="{}",
+                [
+                    Completion(
+                        model="test",
+                        message=Message(
+                            role=Role.ASSISTANT,
+                            content=[
+                                Content(
+                                    tool_call=ToolCall(
+                                        id="tc_1",
+                                        name="internal_tool",
+                                        arguments="{}",
+                                    )
                                 )
-                            )
-                        ],
+                            ],
+                        ),
                     ),
-                ),
-            ],
-            [
-                Completion(
-                    model="test",
-                    message=Message(
-                        role=Role.ASSISTANT,
-                        content=[Content(text="Done.")],
+                ],
+                [
+                    Completion(
+                        model="test",
+                        message=Message(
+                            role=Role.ASSISTANT,
+                            content=[Content(text="Done.")],
+                        ),
                     ),
-                ),
-            ],
-        ])
+                ],
+            ]
+        )
 
         chain = AgentChain(completer, model="test", tools=[tp])
 
@@ -206,25 +208,27 @@ class TestAgentChain:
 
     async def test_user_tools_pass_through(self) -> None:
         """Tool calls for user-supplied tools are yielded (not executed)."""
-        completer = _MockCompleter([
+        completer = _MockCompleter(
             [
-                Completion(
-                    model="test",
-                    message=Message(
-                        role=Role.ASSISTANT,
-                        content=[
-                            Content(
-                                tool_call=ToolCall(
-                                    id="tc_1",
-                                    name="user_tool",
-                                    arguments='{"x": 1}',
+                [
+                    Completion(
+                        model="test",
+                        message=Message(
+                            role=Role.ASSISTANT,
+                            content=[
+                                Content(
+                                    tool_call=ToolCall(
+                                        id="tc_1",
+                                        name="user_tool",
+                                        arguments='{"x": 1}',
+                                    )
                                 )
-                            )
-                        ],
+                            ],
+                        ),
                     ),
-                ),
-            ],
-        ])
+                ],
+            ]
+        )
 
         user_tools = [
             Tool(
@@ -249,17 +253,19 @@ class TestAgentChain:
 
     async def test_chain_prepends_system_messages(self) -> None:
         """System messages from chain config are prepended."""
-        completer = _MockCompleter([
+        completer = _MockCompleter(
             [
-                Completion(
-                    model="test",
-                    message=Message(
-                        role=Role.ASSISTANT,
-                        content=[Content(text="Arr!")],
+                [
+                    Completion(
+                        model="test",
+                        message=Message(
+                            role=Role.ASSISTANT,
+                            content=[Content(text="Arr!")],
+                        ),
                     ),
-                ),
-            ],
-        ])
+                ],
+            ]
+        )
 
         chain = AgentChain(
             completer,
@@ -278,21 +284,21 @@ class TestAgentChain:
         """Chain-level effort is passed to options when not set."""
         from maestro.core.types import Effort
 
-        completer = _MockCompleter([
+        completer = _MockCompleter(
             [
-                Completion(
-                    model="test",
-                    message=Message(
-                        role=Role.ASSISTANT,
-                        content=[Content(text="ok")],
+                [
+                    Completion(
+                        model="test",
+                        message=Message(
+                            role=Role.ASSISTANT,
+                            content=[Content(text="ok")],
+                        ),
                     ),
-                ),
-            ],
-        ])
-
-        chain = AgentChain(
-            completer, model="test", effort=Effort.HIGH
+                ],
+            ]
         )
+
+        chain = AgentChain(completer, model="test", effort=Effort.HIGH)
 
         async for _ in chain.complete([Message.user("test")]):
             pass

@@ -29,16 +29,20 @@ def to_messages(
     result: list[Message] = []
 
     if instructions:
-        result.append(Message(
-            role=Role.SYSTEM,
-            content=[Content(text=instructions)],
-        ))
+        result.append(
+            Message(
+                role=Role.SYSTEM,
+                content=[Content(text=instructions)],
+            )
+        )
 
     if isinstance(input_data, str):
-        result.append(Message(
-            role=Role.USER,
-            content=[Content(text=input_data)],
-        ))
+        result.append(
+            Message(
+                role=Role.USER,
+                content=[Content(text=input_data)],
+            )
+        )
         return result
 
     # Pending buffers for batching
@@ -50,10 +54,12 @@ def to_messages(
         nonlocal pending_reasoning, pending_calls
         if not pending_calls and not pending_reasoning:
             return
-        result.append(Message(
-            role=Role.ASSISTANT,
-            content=pending_reasoning + pending_calls,
-        ))
+        result.append(
+            Message(
+                role=Role.ASSISTANT,
+                content=pending_reasoning + pending_calls,
+            )
+        )
         pending_reasoning = []
         pending_calls = []
 
@@ -61,10 +67,12 @@ def to_messages(
         nonlocal pending_results
         if not pending_results:
             return
-        result.append(Message(
-            role=Role.USER,
-            content=pending_results,
-        ))
+        result.append(
+            Message(
+                role=Role.USER,
+                content=pending_results,
+            )
+        )
         pending_results = []
 
     for item in input_data:
@@ -79,18 +87,22 @@ def to_messages(
                     content_parts = pending_reasoning + content_parts
                     pending_reasoning = []
                     if content_parts:
-                        result.append(Message(
-                            role=Role.ASSISTANT,
-                            content=content_parts,
-                        ))
+                        result.append(
+                            Message(
+                                role=Role.ASSISTANT,
+                                content=content_parts,
+                            )
+                        )
                 else:
                     flush_calls()
                     flush_results()
                     if content_parts:
-                        result.append(Message(
-                            role=role,
-                            content=content_parts,
-                        ))
+                        result.append(
+                            Message(
+                                role=role,
+                                content=content_parts,
+                            )
+                        )
 
             case "reasoning":
                 r = Reasoning(id=item.id or "")
@@ -98,35 +110,43 @@ def to_messages(
                 if item.summary:
                     for part in item.summary:
                         if part.get("type") == "summary_text":
-                            r = r.model_copy(update={
-                                "summary": r.summary + part.get("text", ""),
-                            })
+                            r = r.model_copy(
+                                update={
+                                    "summary": r.summary + part.get("text", ""),
+                                }
+                            )
 
                 if item.encrypted_content:
-                    r = r.model_copy(update={
-                        "signature": item.encrypted_content,
-                    })
+                    r = r.model_copy(
+                        update={
+                            "signature": item.encrypted_content,
+                        }
+                    )
 
                 pending_reasoning.append(Content(reasoning=r))
 
             case "function_call":
                 flush_results()
-                pending_calls.append(Content(
-                    tool_call=ToolCall(
-                        id=item.call_id or "",
-                        name=item.name or "",
-                        arguments=item.arguments or "",
+                pending_calls.append(
+                    Content(
+                        tool_call=ToolCall(
+                            id=item.call_id or "",
+                            name=item.name or "",
+                            arguments=item.arguments or "",
+                        )
                     )
-                ))
+                )
 
             case "function_call_output":
                 flush_calls()
-                pending_results.append(Content(
-                    tool_result=ToolResult(
-                        id=item.call_id or "",
-                        data=item.output or "",
+                pending_results.append(
+                    Content(
+                        tool_result=ToolResult(
+                            id=item.call_id or "",
+                            data=item.output or "",
+                        )
                     )
-                ))
+                )
 
     flush_calls()
     flush_results()
@@ -140,12 +160,14 @@ def to_tools(tools: list[FunctionTool]) -> list[Tool]:
     for t in tools:
         if t.type != "function":
             continue
-        result.append(Tool(
-            name=t.name,
-            description=t.description,
-            strict=t.strict,
-            parameters=normalize_schema(t.parameters),
-        ))
+        result.append(
+            Tool(
+                name=t.name,
+                description=t.description,
+                strict=t.strict,
+                parameters=normalize_schema(t.parameters),
+            )
+        )
     return result
 
 
@@ -211,16 +233,20 @@ def to_response_outputs(message: Message | None, message_id: str) -> list[dict]:
             }
 
             if c.reasoning.summary:
-                reasoning["summary"].append({
-                    "type": "summary_text",
-                    "text": c.reasoning.summary,
-                })
+                reasoning["summary"].append(
+                    {
+                        "type": "summary_text",
+                        "text": c.reasoning.summary,
+                    }
+                )
 
             if c.reasoning.text:
-                reasoning["content"].append({
-                    "type": "reasoning_text",
-                    "text": c.reasoning.text,
-                })
+                reasoning["content"].append(
+                    {
+                        "type": "reasoning_text",
+                        "text": c.reasoning.text,
+                    }
+                )
 
             if c.reasoning.signature:
                 reasoning["encrypted_content"] = c.reasoning.signature
@@ -230,25 +256,29 @@ def to_response_outputs(message: Message | None, message_id: str) -> list[dict]:
 
     # Tool calls
     for tc in message.tool_calls:
-        outputs.append({
-            "type": "function_call",
-            "id": tc.id,
-            "call_id": tc.id,
-            "status": "completed",
-            "name": tc.name,
-            "arguments": tc.arguments,
-        })
+        outputs.append(
+            {
+                "type": "function_call",
+                "id": tc.id,
+                "call_id": tc.id,
+                "status": "completed",
+                "name": tc.name,
+                "arguments": tc.arguments,
+            }
+        )
 
     # Text output
     text = message.text
     if text:
-        outputs.append({
-            "type": "message",
-            "id": message_id,
-            "role": "assistant",
-            "status": "completed",
-            "content": [{"type": "output_text", "text": text}],
-        })
+        outputs.append(
+            {
+                "type": "message",
+                "id": message_id,
+                "role": "assistant",
+                "status": "completed",
+                "content": [{"type": "output_text", "text": text}],
+            }
+        )
 
     return outputs
 

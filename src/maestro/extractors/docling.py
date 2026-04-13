@@ -15,13 +15,24 @@ from maestro.core.models import FileData
 
 SUPPORTED_EXTENSIONS: set[str] = {
     ".pdf",
-    ".jpeg", ".jpg", ".png", ".bmp", ".tiff", ".heif",
-    ".docx", ".pptx", ".xlsx",
+    ".jpeg",
+    ".jpg",
+    ".png",
+    ".bmp",
+    ".tiff",
+    ".heif",
+    ".docx",
+    ".pptx",
+    ".xlsx",
 }
 
 SUPPORTED_MIME_TYPES: set[str] = {
     "application/pdf",
-    "image/jpeg", "image/png", "image/bmp", "image/tiff", "image/heif",
+    "image/jpeg",
+    "image/png",
+    "image/bmp",
+    "image/tiff",
+    "image/heif",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

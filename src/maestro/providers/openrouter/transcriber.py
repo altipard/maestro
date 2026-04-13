@@ -8,7 +8,6 @@ from __future__ import annotations
 import base64
 import os
 
-from maestro.core.errors import ProviderError
 from maestro.core.models import FileData
 from maestro.providers.registry import provider
 
@@ -59,18 +58,18 @@ def _detect_audio_format(file: FileData) -> str:
     """Detect audio format from content type or filename."""
     if file.content_type:
         _, _, subtype = file.content_type.partition("/")
-        _SUBTYPE_MAP = {
+        subtype_map = {
             "x-wav": "wav",
             "mpeg": "mp3",
             "x-aiff": "aiff",
             "mp4": "m4a",
             "x-m4a": "m4a",
         }
-        return _SUBTYPE_MAP.get(subtype, subtype)
+        return subtype_map.get(subtype, subtype)
 
     if file.name:
         ext = os.path.splitext(file.name)[1].lstrip(".").lower()
-        _EXT_MAP = {"aif": "aiff", "weba": "webm"}
-        return _EXT_MAP.get(ext, ext) if ext else "wav"
+        ext_map = {"aif": "aiff", "weba": "webm"}
+        return ext_map.get(ext, ext) if ext else "wav"
 
     return "wav"

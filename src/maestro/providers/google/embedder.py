@@ -28,18 +28,13 @@ class Embedder:
     ) -> Embedding:
         options = options or EmbedOptions()
 
-        contents = [
-            types.Content(role="user", parts=[types.Part(text=t)])
-            for t in texts
-        ]
+        contents = [types.Content(role="user", parts=[types.Part(text=t)]) for t in texts]
 
         config: dict = {}
         if options.dimensions is not None:
             config["output_dimensionality"] = options.dimensions
 
-        embed_config = (
-            types.EmbedContentConfig(**config) if config else None
-        )
+        embed_config = types.EmbedContentConfig(**config) if config else None
 
         resp = await self._client.aio.models.embed_content(
             model=self._model,

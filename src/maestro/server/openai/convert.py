@@ -42,9 +42,7 @@ def to_messages(oai_messages: list[ChatCompletionMessage]) -> list[Message]:
                     content.append(Content(text=c.text))
         elif m.tool_call_id:
             # Tool result message
-            content.append(
-                Content(tool_result=ToolResult(id=m.tool_call_id, data=m.content or ""))
-            )
+            content.append(Content(tool_result=ToolResult(id=m.tool_call_id, data=m.content or "")))
         elif m.content is not None:
             # Simple string content
             content.append(Content(text=m.content))

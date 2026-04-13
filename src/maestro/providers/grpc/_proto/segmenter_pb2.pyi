@@ -14,7 +14,12 @@ class SegmentRequest(_message.Message):
     file: File
     segment_length: int
     segment_overlap: int
-    def __init__(self, file: _Optional[_Union[File, _Mapping]] = ..., segment_length: _Optional[int] = ..., segment_overlap: _Optional[int] = ...) -> None: ...
+    def __init__(
+        self,
+        file: _Optional[_Union[File, _Mapping]] = ...,
+        segment_length: _Optional[int] = ...,
+        segment_overlap: _Optional[int] = ...,
+    ) -> None: ...
 
 class SegmentResponse(_message.Message):
     __slots__ = ("segments",)
@@ -30,7 +35,12 @@ class File(_message.Message):
     name: str
     content: bytes
     content_type: str
-    def __init__(self, name: _Optional[str] = ..., content: _Optional[bytes] = ..., content_type: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        name: _Optional[str] = ...,
+        content: _Optional[bytes] = ...,
+        content_type: _Optional[str] = ...,
+    ) -> None: ...
 
 class Segment(_message.Message):
     __slots__ = ("text",)

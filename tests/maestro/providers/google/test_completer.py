@@ -35,7 +35,8 @@ class TestGoogleRegistry:
 class TestGoogleCompleter:
     async def test_simple_completion(self) -> None:
         c = create(
-            "google", "completer",
+            "google",
+            "completer",
             token=os.environ["GOOGLE_API_KEY"],
             model=MODEL,
         )
@@ -49,7 +50,8 @@ class TestGoogleCompleter:
 
     async def test_streaming_chunks(self) -> None:
         c = create(
-            "google", "completer",
+            "google",
+            "completer",
             token=os.environ["GOOGLE_API_KEY"],
             model=MODEL,
         )
@@ -62,16 +64,19 @@ class TestGoogleCompleter:
 
     async def test_system_message(self) -> None:
         c = create(
-            "google", "completer",
+            "google",
+            "completer",
             token=os.environ["GOOGLE_API_KEY"],
             model=MODEL,
         )
 
         result = await Accumulator.collect(
-            c.complete([
-                Message.system("You are a pirate. Always say 'Arr'."),
-                Message.user("Greet me."),
-            ])
+            c.complete(
+                [
+                    Message.system("You are a pirate. Always say 'Arr'."),
+                    Message.user("Greet me."),
+                ]
+            )
         )
 
         assert result.message is not None
@@ -79,7 +84,8 @@ class TestGoogleCompleter:
 
     async def test_max_tokens(self) -> None:
         c = create(
-            "google", "completer",
+            "google",
+            "completer",
             token=os.environ["GOOGLE_API_KEY"],
             model=MODEL,
         )
@@ -95,14 +101,13 @@ class TestGoogleCompleter:
 
     async def test_usage_reported(self) -> None:
         c = create(
-            "google", "completer",
+            "google",
+            "completer",
             token=os.environ["GOOGLE_API_KEY"],
             model=MODEL,
         )
 
-        result = await Accumulator.collect(
-            c.complete([Message.user("Hi")])
-        )
+        result = await Accumulator.collect(c.complete([Message.user("Hi")]))
 
         assert result.usage is not None
         assert result.usage.input_tokens > 0
@@ -110,7 +115,8 @@ class TestGoogleCompleter:
 
     async def test_tool_call(self) -> None:
         c = create(
-            "google", "completer",
+            "google",
+            "completer",
             token=os.environ["GOOGLE_API_KEY"],
             model=MODEL,
         )
@@ -142,17 +148,20 @@ class TestGoogleCompleter:
 
     async def test_multi_turn(self) -> None:
         c = create(
-            "google", "completer",
+            "google",
+            "completer",
             token=os.environ["GOOGLE_API_KEY"],
             model=MODEL,
         )
 
         result = await Accumulator.collect(
-            c.complete([
-                Message.user("My name is TestBot."),
-                Message.assistant("Hello TestBot!"),
-                Message.user("What's my name?"),
-            ])
+            c.complete(
+                [
+                    Message.user("My name is TestBot."),
+                    Message.assistant("Hello TestBot!"),
+                    Message.user("What's my name?"),
+                ]
+            )
         )
 
         assert result.message is not None

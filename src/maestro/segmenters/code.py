@@ -62,7 +62,9 @@ class CodeSegmenter:
         sections = _collect_sections(root, max_depth=4)
 
         if not sections:
-            return [text.strip()] if len(text) <= self._segment_length else self._split_by_separators(text, "")
+            if len(text) <= self._segment_length:
+                return [text.strip()] if text.strip() else []
+            return self._split_by_separators(text, "")
 
         return self._build_chunks(text, sections)
 
@@ -130,7 +132,9 @@ class CodeSegmenter:
 
 
 def _collect_sections(
-    node: Any, max_depth: int = 4, depth: int = 0,
+    node: Any,
+    max_depth: int = 4,
+    depth: int = 0,
 ) -> list[tuple[int, int, int]]:
     """Walk AST and collect named node boundaries as (start_byte, end_byte, depth)."""
     sections: list[tuple[int, int, int]] = []
@@ -152,6 +156,7 @@ def _check_tree_sitter() -> bool:
     """Check if tree-sitter is available."""
     try:
         import tree_sitter  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -184,6 +189,7 @@ def _detect_language(filename: str) -> Any | None:
 
     try:
         import importlib
+
         mod = importlib.import_module(module_name)
         return mod.language()
     except (ImportError, AttributeError):

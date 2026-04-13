@@ -112,7 +112,7 @@ def _header_duration(value: str) -> float:
     while remaining:
         # Find first non-digit/non-dot character
         i = 0
-        while i < len(remaining) and (remaining[i].isdigit() or remaining[i] == '.'):
+        while i < len(remaining) and (remaining[i].isdigit() or remaining[i] == "."):
             i += 1
 
         if i == 0:

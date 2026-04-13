@@ -15,10 +15,33 @@ from maestro.core.models import FileData
 _DEFAULT_URL = "https://api.unstructured.io/general/v0/general"
 
 SUPPORTED_EXTENSIONS: set[str] = {
-    ".bmp", ".csv", ".doc", ".docx", ".eml", ".epub", ".heic",
-    ".html", ".jpeg", ".png", ".md", ".msg", ".odt", ".org",
-    ".p7s", ".pdf", ".png", ".ppt", ".pptx", ".rst", ".rtf",
-    ".tiff", ".txt", ".tsv", ".xls", ".xlsx", ".xml",
+    ".bmp",
+    ".csv",
+    ".doc",
+    ".docx",
+    ".eml",
+    ".epub",
+    ".heic",
+    ".html",
+    ".jpeg",
+    ".png",
+    ".md",
+    ".msg",
+    ".odt",
+    ".org",
+    ".p7s",
+    ".pdf",
+    ".png",
+    ".ppt",
+    ".pptx",
+    ".rst",
+    ".rtf",
+    ".tiff",
+    ".txt",
+    ".tsv",
+    ".xls",
+    ".xlsx",
+    ".xml",
 }
 
 SUPPORTED_MIME_TYPES: set[str] = {

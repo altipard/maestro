@@ -162,11 +162,13 @@ class Completer:
 
                     # Tool results become separate tool messages
                     for tr in tool_results:
-                        result.append({
-                            "role": "tool",
-                            "tool_call_id": tr.id,
-                            "content": tr.data,
-                        })
+                        result.append(
+                            {
+                                "role": "tool",
+                                "tool_call_id": tr.id,
+                                "content": tr.data,
+                            }
+                        )
 
                     if not tool_results:
                         parts: list[dict[str, Any]] = []
@@ -188,14 +190,16 @@ class Completer:
                         if c.text and c.text.strip():
                             content_parts.append({"type": "text", "text": c.text.rstrip()})
                         if c.tool_call:
-                            tool_calls.append({
-                                "id": c.tool_call.id,
-                                "type": "function",
-                                "function": {
-                                    "name": c.tool_call.name,
-                                    "arguments": c.tool_call.arguments,
-                                },
-                            })
+                            tool_calls.append(
+                                {
+                                    "id": c.tool_call.id,
+                                    "type": "function",
+                                    "function": {
+                                        "name": c.tool_call.name,
+                                        "arguments": c.tool_call.arguments,
+                                    },
+                                }
+                            )
 
                     if content_parts:
                         if len(content_parts) == 1:
@@ -264,12 +268,12 @@ def _convert_effort(effort) -> str:
     from maestro.core.types import Effort
 
     mapping = {
-        Effort.NONE: "low",      # OpenAI doesn't have none/minimal, map down
+        Effort.NONE: "low",  # OpenAI doesn't have none/minimal, map down
         Effort.MINIMAL: "low",
         Effort.LOW: "low",
         Effort.MEDIUM: "medium",
         Effort.HIGH: "high",
-        Effort.MAX: "high",      # OpenAI max = high
+        Effort.MAX: "high",  # OpenAI max = high
     }
     return mapping.get(effort, effort.value)
 

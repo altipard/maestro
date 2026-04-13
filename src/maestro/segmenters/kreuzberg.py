@@ -53,9 +53,7 @@ class KreuzbergSegmenter:
         # Kreuzberg returns 201 Created on success
         if resp.status_code != 201:
             detail = resp.text or httpx.codes.get_reason_phrase(resp.status_code)
-            raise RuntimeError(
-                f"Kreuzberg extract API error ({resp.status_code}): {detail}"
-            )
+            raise RuntimeError(f"Kreuzberg extract API error ({resp.status_code}): {detail}")
 
         results: list[dict] = resp.json()
 

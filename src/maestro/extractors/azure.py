@@ -16,13 +16,24 @@ from maestro.core.models import FileData
 
 SUPPORTED_EXTENSIONS: set[str] = {
     ".pdf",
-    ".jpeg", ".jpg", ".png", ".bmp", ".tiff", ".heif",
-    ".docx", ".pptx", ".xlsx",
+    ".jpeg",
+    ".jpg",
+    ".png",
+    ".bmp",
+    ".tiff",
+    ".heif",
+    ".docx",
+    ".pptx",
+    ".xlsx",
 }
 
 SUPPORTED_MIME_TYPES: set[str] = {
     "application/pdf",
-    "image/jpeg", "image/png", "image/bmp", "image/tiff", "image/heif",
+    "image/jpeg",
+    "image/png",
+    "image/bmp",
+    "image/tiff",
+    "image/heif",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -46,14 +57,13 @@ class AzureExtractor:
         if not _is_supported(file):
             raise ValueError("unsupported file type")
 
-        params = urlencode({
-            "api-version": _API_VERSION,
-            "outputContentFormat": "markdown",
-        })
-        analyze_url = (
-            f"{self._url}/documentintelligence/documentModels/"
-            f"{_MODEL}:analyze?{params}"
+        params = urlencode(
+            {
+                "api-version": _API_VERSION,
+                "outputContentFormat": "markdown",
+            }
         )
+        analyze_url = f"{self._url}/documentintelligence/documentModels/{_MODEL}:analyze?{params}"
 
         headers = {
             "Content-Type": "application/octet-stream",

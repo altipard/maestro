@@ -18,10 +18,10 @@ from maestro.core.errors import ProviderError, status_code_from_error
 from maestro.core.models import Accumulator, CompleteOptions, Schema, ToolOptions
 from maestro.core.types import Verbosity
 
-logger = logging.getLogger(__name__)
-
 from .convert import to_effort, to_messages, to_response_outputs, to_tool_choice, to_tools
 from .models import ResponsesRequest
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -33,6 +33,7 @@ async def create_response(req: ResponsesRequest, request: Request):
 
     # Policy check
     from maestro.policy.policy import AccessDeniedError, Action, Resource
+
     try:
         await config.policy.verify(Resource.MODEL, req.model, Action.ACCESS)
     except AccessDeniedError:
@@ -81,14 +82,18 @@ async def create_response(req: ResponsesRequest, request: Request):
         options = options.model_copy(update={"tool_choice": tc})
 
     if req.max_output_tokens is not None:
-        options = options.model_copy(update={
-            "max_tokens": req.max_output_tokens,
-        })
+        options = options.model_copy(
+            update={
+                "max_tokens": req.max_output_tokens,
+            }
+        )
 
     if req.temperature is not None:
-        options = options.model_copy(update={
-            "temperature": req.temperature,
-        })
+        options = options.model_copy(
+            update={
+                "temperature": req.temperature,
+            }
+        )
 
     if req.reasoning is not None:
         effort = to_effort(req.reasoning)
@@ -100,19 +105,23 @@ async def create_response(req: ResponsesRequest, request: Request):
         if req.text.format:
             fmt = req.text.format
             if fmt.type == "json_object":
-                options = options.model_copy(update={
-                    "structured_output": Schema(name="json_object"),
-                })
+                options = options.model_copy(
+                    update={
+                        "structured_output": Schema(name="json_object"),
+                    }
+                )
             elif fmt.type == "json_schema" and fmt.schema_:
-                options = options.model_copy(update={
-                    "response_schema": fmt.schema_,
-                    "structured_output": Schema(
-                        name=fmt.name,
-                        description=fmt.description,
-                        schema_=fmt.schema_,
-                        strict=fmt.strict,
-                    ),
-                })
+                options = options.model_copy(
+                    update={
+                        "response_schema": fmt.schema_,
+                        "structured_output": Schema(
+                            name=fmt.name,
+                            description=fmt.description,
+                            schema_=fmt.schema_,
+                            strict=fmt.strict,
+                        ),
+                    }
+                )
 
         if req.text.verbosity:
             verbosity_map = {
@@ -184,9 +193,7 @@ async def _complete_response(
         response["usage"] = {
             "input_tokens": result.usage.input_tokens,
             "output_tokens": result.usage.output_tokens,
-            "total_tokens": (
-                result.usage.input_tokens + result.usage.output_tokens
-            ),
+            "total_tokens": (result.usage.input_tokens + result.usage.output_tokens),
         }
 
     return JSONResponse(content=response)
@@ -233,16 +240,22 @@ async def _stream_response(
         }
 
     # Emit response.created + response.in_progress
-    yield sse("response.created", {
-        "type": "response.created",
-        "sequence_number": next_seq(),
-        "response": make_response("in_progress", []),
-    })
-    yield sse("response.in_progress", {
-        "type": "response.in_progress",
-        "sequence_number": next_seq(),
-        "response": make_response("in_progress", []),
-    })
+    yield sse(
+        "response.created",
+        {
+            "type": "response.created",
+            "sequence_number": next_seq(),
+            "response": make_response("in_progress", []),
+        },
+    )
+    yield sse(
+        "response.in_progress",
+        {
+            "type": "response.in_progress",
+            "sequence_number": next_seq(),
+            "response": make_response("in_progress", []),
+        },
+    )
 
     # State tracking
     has_output_item = False
@@ -278,40 +291,60 @@ async def _stream_response(
         r_summary = "".join(reasoning_summary_parts)
 
         if reasoning_text_parts:
-            events.append(sse("response.reasoning_text.done", {
-                "type": "response.reasoning_text.done",
-                "sequence_number": next_seq(),
-                "item_id": reasoning_id,
-                "output_index": reasoning_output_index,
-                "content_index": 0,
-                "text": r_text,
-            }))
-            events.append(sse("response.content_part.done", {
-                "type": "response.content_part.done",
-                "sequence_number": next_seq(),
-                "item_id": reasoning_id,
-                "output_index": reasoning_output_index,
-                "content_index": 0,
-                "part": {"type": "reasoning_text", "text": r_text},
-            }))
+            events.append(
+                sse(
+                    "response.reasoning_text.done",
+                    {
+                        "type": "response.reasoning_text.done",
+                        "sequence_number": next_seq(),
+                        "item_id": reasoning_id,
+                        "output_index": reasoning_output_index,
+                        "content_index": 0,
+                        "text": r_text,
+                    },
+                )
+            )
+            events.append(
+                sse(
+                    "response.content_part.done",
+                    {
+                        "type": "response.content_part.done",
+                        "sequence_number": next_seq(),
+                        "item_id": reasoning_id,
+                        "output_index": reasoning_output_index,
+                        "content_index": 0,
+                        "part": {"type": "reasoning_text", "text": r_text},
+                    },
+                )
+            )
 
         if reasoning_summary_parts:
-            events.append(sse("response.reasoning_summary_text.done", {
-                "type": "response.reasoning_summary_text.done",
-                "sequence_number": next_seq(),
-                "item_id": reasoning_id,
-                "output_index": reasoning_output_index,
-                "summary_index": 0,
-                "text": r_summary,
-            }))
-            events.append(sse("response.reasoning_summary_part.done", {
-                "type": "response.reasoning_summary_part.done",
-                "sequence_number": next_seq(),
-                "item_id": reasoning_id,
-                "output_index": reasoning_output_index,
-                "summary_index": 0,
-                "part": {"type": "summary_text", "text": r_summary},
-            }))
+            events.append(
+                sse(
+                    "response.reasoning_summary_text.done",
+                    {
+                        "type": "response.reasoning_summary_text.done",
+                        "sequence_number": next_seq(),
+                        "item_id": reasoning_id,
+                        "output_index": reasoning_output_index,
+                        "summary_index": 0,
+                        "text": r_summary,
+                    },
+                )
+            )
+            events.append(
+                sse(
+                    "response.reasoning_summary_part.done",
+                    {
+                        "type": "response.reasoning_summary_part.done",
+                        "sequence_number": next_seq(),
+                        "item_id": reasoning_id,
+                        "output_index": reasoning_output_index,
+                        "summary_index": 0,
+                        "part": {"type": "summary_text", "text": r_summary},
+                    },
+                )
+            )
 
         # reasoning item done
         item: dict[str, Any] = {
@@ -328,12 +361,17 @@ async def _stream_response(
         if reasoning_signature:
             item["encrypted_content"] = reasoning_signature
 
-        events.append(sse("response.output_item.done", {
-            "type": "response.output_item.done",
-            "sequence_number": next_seq(),
-            "output_index": reasoning_output_index,
-            "item": item,
-        }))
+        events.append(
+            sse(
+                "response.output_item.done",
+                {
+                    "type": "response.output_item.done",
+                    "sequence_number": next_seq(),
+                    "output_index": reasoning_output_index,
+                    "item": item,
+                },
+            )
+        )
 
         return events
 
@@ -360,18 +398,21 @@ async def _stream_response(
                             reasoning_output_index = reserve_output_index()
                             if not reasoning_id:
                                 reasoning_id = f"rs_{uuid.uuid4().hex[:24]}"
-                            yield sse("response.output_item.added", {
-                                "type": "response.output_item.added",
-                                "sequence_number": next_seq(),
-                                "output_index": reasoning_output_index,
-                                "item": {
-                                    "id": reasoning_id,
-                                    "type": "reasoning",
-                                    "status": "in_progress",
-                                    "summary": [],
-                                    "content": [],
+                            yield sse(
+                                "response.output_item.added",
+                                {
+                                    "type": "response.output_item.added",
+                                    "sequence_number": next_seq(),
+                                    "output_index": reasoning_output_index,
+                                    "item": {
+                                        "id": reasoning_id,
+                                        "type": "reasoning",
+                                        "status": "in_progress",
+                                        "summary": [],
+                                        "content": [],
+                                    },
                                 },
-                            })
+                            )
 
                     if r.text:
                         if not has_reasoning_item:
@@ -379,39 +420,48 @@ async def _stream_response(
                             reasoning_output_index = reserve_output_index()
                             if not reasoning_id:
                                 reasoning_id = f"rs_{uuid.uuid4().hex[:24]}"
-                            yield sse("response.output_item.added", {
-                                "type": "response.output_item.added",
-                                "sequence_number": next_seq(),
-                                "output_index": reasoning_output_index,
-                                "item": {
-                                    "id": reasoning_id,
-                                    "type": "reasoning",
-                                    "status": "in_progress",
-                                    "summary": [],
-                                    "content": [],
+                            yield sse(
+                                "response.output_item.added",
+                                {
+                                    "type": "response.output_item.added",
+                                    "sequence_number": next_seq(),
+                                    "output_index": reasoning_output_index,
+                                    "item": {
+                                        "id": reasoning_id,
+                                        "type": "reasoning",
+                                        "status": "in_progress",
+                                        "summary": [],
+                                        "content": [],
+                                    },
                                 },
-                            })
+                            )
 
                         if not has_reasoning_text_part:
                             has_reasoning_text_part = True
-                            yield sse("response.content_part.added", {
-                                "type": "response.content_part.added",
+                            yield sse(
+                                "response.content_part.added",
+                                {
+                                    "type": "response.content_part.added",
+                                    "sequence_number": next_seq(),
+                                    "item_id": reasoning_id,
+                                    "output_index": reasoning_output_index,
+                                    "content_index": 0,
+                                    "part": {"type": "reasoning_text", "text": ""},
+                                },
+                            )
+
+                        reasoning_text_parts.append(r.text)
+                        yield sse(
+                            "response.reasoning_text.delta",
+                            {
+                                "type": "response.reasoning_text.delta",
                                 "sequence_number": next_seq(),
                                 "item_id": reasoning_id,
                                 "output_index": reasoning_output_index,
                                 "content_index": 0,
-                                "part": {"type": "reasoning_text", "text": ""},
-                            })
-
-                        reasoning_text_parts.append(r.text)
-                        yield sse("response.reasoning_text.delta", {
-                            "type": "response.reasoning_text.delta",
-                            "sequence_number": next_seq(),
-                            "item_id": reasoning_id,
-                            "output_index": reasoning_output_index,
-                            "content_index": 0,
-                            "delta": r.text,
-                        })
+                                "delta": r.text,
+                            },
+                        )
 
                     if r.summary:
                         if not has_reasoning_item:
@@ -419,39 +469,48 @@ async def _stream_response(
                             reasoning_output_index = reserve_output_index()
                             if not reasoning_id:
                                 reasoning_id = f"rs_{uuid.uuid4().hex[:24]}"
-                            yield sse("response.output_item.added", {
-                                "type": "response.output_item.added",
-                                "sequence_number": next_seq(),
-                                "output_index": reasoning_output_index,
-                                "item": {
-                                    "id": reasoning_id,
-                                    "type": "reasoning",
-                                    "status": "in_progress",
-                                    "summary": [],
-                                    "content": [],
+                            yield sse(
+                                "response.output_item.added",
+                                {
+                                    "type": "response.output_item.added",
+                                    "sequence_number": next_seq(),
+                                    "output_index": reasoning_output_index,
+                                    "item": {
+                                        "id": reasoning_id,
+                                        "type": "reasoning",
+                                        "status": "in_progress",
+                                        "summary": [],
+                                        "content": [],
+                                    },
                                 },
-                            })
+                            )
 
                         if not has_reasoning_summary_part:
                             has_reasoning_summary_part = True
-                            yield sse("response.reasoning_summary_part.added", {
-                                "type": "response.reasoning_summary_part.added",
+                            yield sse(
+                                "response.reasoning_summary_part.added",
+                                {
+                                    "type": "response.reasoning_summary_part.added",
+                                    "sequence_number": next_seq(),
+                                    "item_id": reasoning_id,
+                                    "output_index": reasoning_output_index,
+                                    "summary_index": 0,
+                                    "part": {"type": "summary_text", "text": ""},
+                                },
+                            )
+
+                        reasoning_summary_parts.append(r.summary)
+                        yield sse(
+                            "response.reasoning_summary_text.delta",
+                            {
+                                "type": "response.reasoning_summary_text.delta",
                                 "sequence_number": next_seq(),
                                 "item_id": reasoning_id,
                                 "output_index": reasoning_output_index,
                                 "summary_index": 0,
-                                "part": {"type": "summary_text", "text": ""},
-                            })
-
-                        reasoning_summary_parts.append(r.summary)
-                        yield sse("response.reasoning_summary_text.delta", {
-                            "type": "response.reasoning_summary_text.delta",
-                            "sequence_number": next_seq(),
-                            "item_id": reasoning_id,
-                            "output_index": reasoning_output_index,
-                            "summary_index": 0,
-                            "delta": r.summary,
-                        })
+                                "delta": r.summary,
+                            },
+                        )
 
                 # Text content
                 if cnt.text:
@@ -462,39 +521,48 @@ async def _stream_response(
 
                         has_output_item = True
                         message_output_index = reserve_output_index()
-                        yield sse("response.output_item.added", {
-                            "type": "response.output_item.added",
-                            "sequence_number": next_seq(),
-                            "output_index": message_output_index,
-                            "item": {
-                                "id": message_id,
-                                "type": "message",
-                                "status": "in_progress",
-                                "content": [],
-                                "role": "assistant",
+                        yield sse(
+                            "response.output_item.added",
+                            {
+                                "type": "response.output_item.added",
+                                "sequence_number": next_seq(),
+                                "output_index": message_output_index,
+                                "item": {
+                                    "id": message_id,
+                                    "type": "message",
+                                    "status": "in_progress",
+                                    "content": [],
+                                    "role": "assistant",
+                                },
                             },
-                        })
+                        )
 
                     if not has_content_part:
                         has_content_part = True
-                        yield sse("response.content_part.added", {
-                            "type": "response.content_part.added",
+                        yield sse(
+                            "response.content_part.added",
+                            {
+                                "type": "response.content_part.added",
+                                "sequence_number": next_seq(),
+                                "item_id": message_id,
+                                "output_index": message_output_index,
+                                "content_index": 0,
+                                "part": {"type": "output_text", "text": ""},
+                            },
+                        )
+
+                    text_parts.append(cnt.text)
+                    yield sse(
+                        "response.output_text.delta",
+                        {
+                            "type": "response.output_text.delta",
                             "sequence_number": next_seq(),
                             "item_id": message_id,
                             "output_index": message_output_index,
                             "content_index": 0,
-                            "part": {"type": "output_text", "text": ""},
-                        })
-
-                    text_parts.append(cnt.text)
-                    yield sse("response.output_text.delta", {
-                        "type": "response.output_text.delta",
-                        "sequence_number": next_seq(),
-                        "item_id": message_id,
-                        "output_index": message_output_index,
-                        "content_index": 0,
-                        "delta": cnt.text,
-                    })
+                            "delta": cnt.text,
+                        },
+                    )
 
                 # Tool calls
                 if cnt.tool_call:
@@ -508,19 +576,22 @@ async def _stream_response(
 
                     if tc_id and tc_id not in tool_call_started:
                         tool_call_started.add(tc_id)
-                        yield sse("response.output_item.added", {
-                            "type": "response.output_item.added",
-                            "sequence_number": next_seq(),
-                            "output_index": tool_call_indices.get(tc_id, 0),
-                            "item": {
-                                "id": tc_id,
-                                "type": "function_call",
-                                "status": "in_progress",
-                                "call_id": tc_id,
-                                "name": tc.name,
-                                "arguments": "",
+                        yield sse(
+                            "response.output_item.added",
+                            {
+                                "type": "response.output_item.added",
+                                "sequence_number": next_seq(),
+                                "output_index": tool_call_indices.get(tc_id, 0),
+                                "item": {
+                                    "id": tc_id,
+                                    "type": "function_call",
+                                    "status": "in_progress",
+                                    "call_id": tc_id,
+                                    "name": tc.name,
+                                    "arguments": "",
+                                },
                             },
-                        })
+                        )
 
                     if tc_id and tc.arguments:
                         yield sse(
@@ -529,9 +600,7 @@ async def _stream_response(
                                 "type": "response.function_call_arguments.delta",
                                 "sequence_number": next_seq(),
                                 "item_id": tc_id,
-                                "output_index": tool_call_indices.get(
-                                    tc_id, 0
-                                ),
+                                "output_index": tool_call_indices.get(tc_id, 0),
                                 "delta": tc.arguments,
                             },
                         )
@@ -548,14 +617,17 @@ async def _stream_response(
                 429: "rate_limit_exceeded",
             }
             error_type = error_map.get(status, "server_error")
-        yield sse("response.failed", {
-            "type": "response.failed",
-            "sequence_number": next_seq(),
-            "response": {
-                **make_response("failed", []),
-                "error": {"type": error_type, "message": str(exc)},
+        yield sse(
+            "response.failed",
+            {
+                "type": "response.failed",
+                "sequence_number": next_seq(),
+                "response": {
+                    **make_response("failed", []),
+                    "error": {"type": error_type, "message": str(exc)},
+                },
             },
-        })
+        )
         yield "data: [DONE]\n\n"
         return
 
@@ -566,34 +638,43 @@ async def _stream_response(
 
     # text.done + content_part.done + output_item.done for message
     if text_parts:
-        yield sse("response.output_text.done", {
-            "type": "response.output_text.done",
-            "sequence_number": next_seq(),
-            "item_id": message_id,
-            "output_index": message_output_index,
-            "content_index": 0,
-            "text": full_text,
-        })
-        yield sse("response.content_part.done", {
-            "type": "response.content_part.done",
-            "sequence_number": next_seq(),
-            "item_id": message_id,
-            "output_index": message_output_index,
-            "content_index": 0,
-            "part": {"type": "output_text", "text": full_text},
-        })
-        yield sse("response.output_item.done", {
-            "type": "response.output_item.done",
-            "sequence_number": next_seq(),
-            "output_index": message_output_index,
-            "item": {
-                "id": message_id,
-                "type": "message",
-                "status": "completed",
-                "content": [{"type": "output_text", "text": full_text}],
-                "role": "assistant",
+        yield sse(
+            "response.output_text.done",
+            {
+                "type": "response.output_text.done",
+                "sequence_number": next_seq(),
+                "item_id": message_id,
+                "output_index": message_output_index,
+                "content_index": 0,
+                "text": full_text,
             },
-        })
+        )
+        yield sse(
+            "response.content_part.done",
+            {
+                "type": "response.content_part.done",
+                "sequence_number": next_seq(),
+                "item_id": message_id,
+                "output_index": message_output_index,
+                "content_index": 0,
+                "part": {"type": "output_text", "text": full_text},
+            },
+        )
+        yield sse(
+            "response.output_item.done",
+            {
+                "type": "response.output_item.done",
+                "sequence_number": next_seq(),
+                "output_index": message_output_index,
+                "item": {
+                    "id": message_id,
+                    "type": "message",
+                    "status": "completed",
+                    "content": [{"type": "output_text", "text": full_text}],
+                    "role": "assistant",
+                },
+            },
+        )
 
     # Close reasoning if still open
     for ev in close_reasoning_events():
@@ -603,27 +684,33 @@ async def _stream_response(
     if result.message:
         for tc in result.message.tool_calls:
             oi = tool_call_indices.get(tc.id, 0)
-            yield sse("response.function_call_arguments.done", {
-                "type": "response.function_call_arguments.done",
-                "sequence_number": next_seq(),
-                "item_id": tc.id,
-                "name": tc.name,
-                "output_index": oi,
-                "arguments": tc.arguments,
-            })
-            yield sse("response.output_item.done", {
-                "type": "response.output_item.done",
-                "sequence_number": next_seq(),
-                "output_index": oi,
-                "item": {
-                    "id": tc.id,
-                    "type": "function_call",
-                    "status": "completed",
-                    "call_id": tc.id,
+            yield sse(
+                "response.function_call_arguments.done",
+                {
+                    "type": "response.function_call_arguments.done",
+                    "sequence_number": next_seq(),
+                    "item_id": tc.id,
                     "name": tc.name,
+                    "output_index": oi,
                     "arguments": tc.arguments,
                 },
-            })
+            )
+            yield sse(
+                "response.output_item.done",
+                {
+                    "type": "response.output_item.done",
+                    "sequence_number": next_seq(),
+                    "output_index": oi,
+                    "item": {
+                        "id": tc.id,
+                        "type": "function_call",
+                        "status": "completed",
+                        "call_id": tc.id,
+                        "name": tc.name,
+                        "arguments": tc.arguments,
+                    },
+                },
+            )
 
     # Determine final status
     from maestro.core.types import Status
@@ -640,22 +727,26 @@ async def _stream_response(
         final_response["usage"] = {
             "input_tokens": result.usage.input_tokens,
             "output_tokens": result.usage.output_tokens,
-            "total_tokens": (
-                result.usage.input_tokens + result.usage.output_tokens
-            ),
+            "total_tokens": (result.usage.input_tokens + result.usage.output_tokens),
         }
 
     if final_status == "incomplete":
-        yield sse("response.incomplete", {
-            "type": "response.incomplete",
-            "sequence_number": next_seq(),
-            "response": final_response,
-        })
+        yield sse(
+            "response.incomplete",
+            {
+                "type": "response.incomplete",
+                "sequence_number": next_seq(),
+                "response": final_response,
+            },
+        )
     else:
-        yield sse("response.completed", {
-            "type": "response.completed",
-            "sequence_number": next_seq(),
-            "response": final_response,
-        })
+        yield sse(
+            "response.completed",
+            {
+                "type": "response.completed",
+                "sequence_number": next_seq(),
+                "response": final_response,
+            },
+        )
 
     yield "data: [DONE]\n\n"

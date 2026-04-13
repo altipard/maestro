@@ -78,7 +78,9 @@ class Completer:
             ) from exc
 
     def _handle_event(
-        self, event: Any, options: CompleteOptions,
+        self,
+        event: Any,
+        options: CompleteOptions,
     ) -> Completion | None:
         """Convert an Anthropic stream event to a Completion chunk."""
         match event.type:
@@ -139,11 +141,7 @@ class Completer:
                             model=self._model,
                             message=Message(
                                 role=Role.ASSISTANT,
-                                content=[
-                                    Content(
-                                        reasoning=Reasoning(text=delta.thinking)
-                                    )
-                                ],
+                                content=[Content(reasoning=Reasoning(text=delta.thinking))],
                             ),
                         )
                     case "signature_delta":
@@ -174,9 +172,7 @@ class Completer:
                                 model=self._model,
                                 message=Message(
                                     role=Role.ASSISTANT,
-                                    content=[
-                                        Content(text=delta.partial_json)
-                                    ],
+                                    content=[Content(text=delta.partial_json)],
                                 ),
                             )
                         return Completion(
@@ -201,7 +197,9 @@ class Completer:
     # ── Request building ──────────────────────────────────────────
 
     def _build_params(
-        self, messages: list[Message], options: CompleteOptions,
+        self,
+        messages: list[Message],
+        options: CompleteOptions,
     ) -> dict[str, Any]:
         params: dict[str, Any] = {
             "model": self._model,
@@ -297,7 +295,8 @@ class Completer:
         return parts
 
     def _convert_messages(
-        self, messages: list[Message],
+        self,
+        messages: list[Message],
     ) -> list[dict[str, Any]]:
         """Convert internal Messages to Anthropic message format."""
         result: list[dict[str, Any]] = []
@@ -312,66 +311,76 @@ class Completer:
 
                     for c in msg.content:
                         if c.text and c.text.strip():
-                            blocks.append({
-                                "type": "text",
-                                "text": c.text.rstrip(),
-                            })
+                            blocks.append(
+                                {
+                                    "type": "text",
+                                    "text": c.text.rstrip(),
+                                }
+                            )
 
                         if c.tool_result:
-                            blocks.append({
-                                "type": "tool_result",
-                                "tool_use_id": c.tool_result.id,
-                                "content": [
-                                    {"type": "text", "text": c.tool_result.data}
-                                ],
-                            })
+                            blocks.append(
+                                {
+                                    "type": "tool_result",
+                                    "tool_use_id": c.tool_result.id,
+                                    "content": [{"type": "text", "text": c.tool_result.data}],
+                                }
+                            )
 
                     if blocks:
                         # Cache control on last block of last user msg
-                        result.append({
-                            "role": "user",
-                            "content": blocks,
-                        })
+                        result.append(
+                            {
+                                "role": "user",
+                                "content": blocks,
+                            }
+                        )
 
                 case Role.ASSISTANT:
                     blocks = []
 
                     for c in msg.content:
                         if c.reasoning:
-                            blocks.append({
-                                "type": "thinking",
-                                "thinking": c.reasoning.text,
-                                "signature": c.reasoning.signature,
-                            })
+                            blocks.append(
+                                {
+                                    "type": "thinking",
+                                    "thinking": c.reasoning.text,
+                                    "signature": c.reasoning.signature,
+                                }
+                            )
 
                         if c.text and c.text.strip():
-                            blocks.append({
-                                "type": "text",
-                                "text": c.text.rstrip(),
-                            })
+                            blocks.append(
+                                {
+                                    "type": "text",
+                                    "text": c.text.rstrip(),
+                                }
+                            )
 
                         if c.tool_call:
                             input_data: dict[str, Any] = {}
                             if c.tool_call.arguments:
                                 try:
-                                    input_data = json.loads(
-                                        c.tool_call.arguments
-                                    )
+                                    input_data = json.loads(c.tool_call.arguments)
                                 except (json.JSONDecodeError, TypeError):
                                     pass
 
-                            blocks.append({
-                                "type": "tool_use",
-                                "id": c.tool_call.id,
-                                "name": c.tool_call.name,
-                                "input": input_data,
-                            })
+                            blocks.append(
+                                {
+                                    "type": "tool_use",
+                                    "id": c.tool_call.id,
+                                    "name": c.tool_call.name,
+                                    "input": input_data,
+                                }
+                            )
 
                     if blocks:
-                        result.append({
-                            "role": "assistant",
-                            "content": blocks,
-                        })
+                        result.append(
+                            {
+                                "role": "assistant",
+                                "content": blocks,
+                            }
+                        )
 
         # Add cache control to last user message's last block
         for i in range(len(result) - 1, -1, -1):
@@ -384,7 +393,8 @@ class Completer:
         return result
 
     def _convert_tools(
-        self, tools: list | None,
+        self,
+        tools: list | None,
     ) -> list[dict[str, Any]]:
         """Convert internal Tool list to Anthropic tool format."""
         if not tools:

@@ -69,6 +69,7 @@ class RateLimited:
 
         if inspect.ismethod(attr) or inspect.isfunction(attr):
             if inspect.isasyncgenfunction(attr):
+
                 @functools.wraps(attr)
                 async def gen_wrapper(*args: Any, **kwargs: Any):  # type: ignore[no-untyped-def]
                     await self._bucket.acquire()
@@ -78,6 +79,7 @@ class RateLimited:
                 return gen_wrapper
 
             if asyncio.iscoroutinefunction(attr):
+
                 @functools.wraps(attr)
                 async def coro_wrapper(*args: Any, **kwargs: Any) -> Any:
                     await self._bucket.acquire()
@@ -104,6 +106,7 @@ class Traced:
 
         if inspect.ismethod(attr) or inspect.isfunction(attr):
             if inspect.isasyncgenfunction(attr):
+
                 @functools.wraps(attr)
                 async def gen_wrapper(*args: Any, **kwargs: Any):  # type: ignore[no-untyped-def]
                     # TODO: create otel span when configured
@@ -113,6 +116,7 @@ class Traced:
                 return gen_wrapper
 
             if asyncio.iscoroutinefunction(attr):
+
                 @functools.wraps(attr)
                 async def coro_wrapper(*args: Any, **kwargs: Any) -> Any:
                     # TODO: create otel span when configured

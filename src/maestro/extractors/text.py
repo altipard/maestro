@@ -13,9 +13,17 @@ import unicodedata
 from maestro.core.models import FileData
 
 SUPPORTED_EXTENSIONS: set[str] = {
-    ".txt", ".csv", ".tsv",
-    ".json", ".xml", ".yaml", ".yml",
-    ".ini", ".log", ".md", ".rst",
+    ".txt",
+    ".csv",
+    ".tsv",
+    ".json",
+    ".xml",
+    ".yaml",
+    ".yml",
+    ".ini",
+    ".log",
+    ".md",
+    ".rst",
 }
 
 SUPPORTED_MIME_TYPES: set[str] = {

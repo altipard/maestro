@@ -53,8 +53,7 @@ def create(vendor: str, capability: str, **kwargs: Any) -> Any:
     except KeyError:
         available = list(_registry.get(vendor, {}).keys())
         raise ValueError(
-            f"No '{capability}' provider for '{vendor}'. "
-            f"Available: {available or 'none'}"
+            f"No '{capability}' provider for '{vendor}'. Available: {available or 'none'}"
         ) from None
     return cls(**kwargs)
 
@@ -68,11 +67,26 @@ def list_providers() -> dict[str, list[str]]:
 
 _MODEL_PATTERNS: dict[str, list[str]] = {
     "completer": [
-        "gpt", "o1", "o3", "o4", "chatgpt",
-        "claude", "sonnet", "opus", "haiku",
-        "gemini", "gemma",
-        "mistral", "mixtral", "codestral", "devstral",
-        "llama", "command", "qwen", "deepseek", "phi",
+        "gpt",
+        "o1",
+        "o3",
+        "o4",
+        "chatgpt",
+        "claude",
+        "sonnet",
+        "opus",
+        "haiku",
+        "gemini",
+        "gemma",
+        "mistral",
+        "mixtral",
+        "codestral",
+        "devstral",
+        "llama",
+        "command",
+        "qwen",
+        "deepseek",
+        "phi",
     ],
     "embedder": ["embed", "embedding"],
     "renderer": ["dall-e", "flux", "stable-diffusion", "imagen"],
@@ -89,7 +103,12 @@ def detect_capability(model_id: str) -> str:
 
     # Check non-completer patterns first (they're more specific)
     for capability in [
-        "embedder", "renderer", "synthesizer", "transcriber", "reranker", "vectorstore",
+        "embedder",
+        "renderer",
+        "synthesizer",
+        "transcriber",
+        "reranker",
+        "vectorstore",
     ]:
         if any(p in model_lower for p in _MODEL_PATTERNS[capability]):
             return capability

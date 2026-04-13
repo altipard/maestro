@@ -52,9 +52,7 @@ class TestToolProviderProtocol:
             async def tools(self) -> list[Tool]:
                 return [Tool(name="test", description="test tool")]
 
-            async def execute(
-                self, name: str, parameters: dict[str, Any]
-            ) -> Any:
+            async def execute(self, name: str, parameters: dict[str, Any]) -> Any:
                 return {"result": "ok"}
 
         tp = MockToolProvider()

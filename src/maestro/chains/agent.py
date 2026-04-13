@@ -61,9 +61,7 @@ class AgentChain:
         if self._effort and not options.effort:
             options = options.model_copy(update={"effort": self._effort})
         if self._temperature is not None and options.temperature is None:
-            options = options.model_copy(
-                update={"temperature": self._temperature}
-            )
+            options = options.model_copy(update={"temperature": self._temperature})
 
         # Prepend system/context messages
         input_msgs = list(self._messages) + list(messages)
@@ -82,9 +80,7 @@ class AgentChain:
             for t in options.tools:
                 input_tools[t.name] = t
 
-        input_options = options.model_copy(
-            update={"tools": list(input_tools.values())}
-        )
+        input_options = options.model_copy(update={"tools": list(input_tools.values())})
 
         # Merge tool_choice with agent tools
         input_options = _merge_tool_options(input_options, list(agent_tools))
@@ -94,9 +90,7 @@ class AgentChain:
         while True:
             acc = Accumulator()
 
-            async for chunk in self._completer.complete(
-                input_msgs, input_options
-            ):
+            async for chunk in self._completer.complete(input_msgs, input_options):
                 acc.add(chunk)
 
                 delta = Completion(
@@ -155,9 +149,7 @@ class AgentChain:
                     except (json.JSONDecodeError, TypeError):
                         pass
 
-                result_data = await tp.execute(
-                    cnt.tool_call.name, params
-                )
+                result_data = await tp.execute(cnt.tool_call.name, params)
                 data = json.dumps(result_data)
 
                 input_msgs.append(

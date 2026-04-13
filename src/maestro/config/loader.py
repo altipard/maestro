@@ -233,34 +233,42 @@ def _create_extractor(ext_cfg: ExtractorConfig) -> Any:
     match ext_cfg.type:
         case "text":
             from maestro.extractors.text import TextExtractor
+
             return TextExtractor()
 
         case "tika":
             from maestro.extractors.tika import TikaExtractor
+
             return TikaExtractor(url=ext_cfg.url)
 
         case "kreuzberg":
             from maestro.extractors.kreuzberg import KreuzbergExtractor
+
             return KreuzbergExtractor(url=ext_cfg.url, token=ext_cfg.token)
 
         case "mistral":
             from maestro.extractors.mistral import MistralExtractor
+
             return MistralExtractor(url=ext_cfg.url, token=ext_cfg.token, model=ext_cfg.model)
 
         case "unstructured":
             from maestro.extractors.unstructured import UnstructuredExtractor
+
             return UnstructuredExtractor(url=ext_cfg.url, token=ext_cfg.token)
 
         case "docling":
             from maestro.extractors.docling import DoclingExtractor
+
             return DoclingExtractor(url=ext_cfg.url, token=ext_cfg.token)
 
         case "azure":
             from maestro.extractors.azure import AzureExtractor
+
             return AzureExtractor(url=ext_cfg.url, token=ext_cfg.token, model=ext_cfg.model)
 
         case "grpc":
             from maestro.providers.grpc.extractor import Extractor as GrpcExtractor
+
             return GrpcExtractor(url=ext_cfg.url)
 
         case _:
@@ -286,6 +294,7 @@ def _create_segmenter(seg_cfg: SegmenterConfig) -> Any:
     match seg_cfg.type:
         case "text":
             from maestro.segmenters.text import TextSegmenter
+
             return TextSegmenter(
                 segment_length=seg_cfg.segment_length,
                 segment_overlap=seg_cfg.segment_overlap,
@@ -293,6 +302,7 @@ def _create_segmenter(seg_cfg: SegmenterConfig) -> Any:
 
         case "jina":
             from maestro.segmenters.jina import JinaSegmenter
+
             return JinaSegmenter(
                 url=seg_cfg.url,
                 token=seg_cfg.token,
@@ -301,6 +311,7 @@ def _create_segmenter(seg_cfg: SegmenterConfig) -> Any:
 
         case "kreuzberg":
             from maestro.segmenters.kreuzberg import KreuzbergSegmenter
+
             return KreuzbergSegmenter(
                 url=seg_cfg.url,
                 token=seg_cfg.token,
@@ -310,6 +321,7 @@ def _create_segmenter(seg_cfg: SegmenterConfig) -> Any:
 
         case "unstructured":
             from maestro.segmenters.unstructured import UnstructuredSegmenter
+
             return UnstructuredSegmenter(
                 url=seg_cfg.url,
                 token=seg_cfg.token,
@@ -319,6 +331,7 @@ def _create_segmenter(seg_cfg: SegmenterConfig) -> Any:
 
         case "grpc":
             from maestro.providers.grpc.segmenter import Segmenter as GrpcSegmenter
+
             return GrpcSegmenter(
                 url=seg_cfg.url,
                 segment_length=seg_cfg.segment_length,

@@ -17,7 +17,6 @@ import pytest
 
 from maestro.config import Config, load
 from maestro.config.models import ConfigFile, ExtractorConfig, SegmenterConfig
-from maestro.core.models import FileData, Segment
 from maestro.core.protocols import Extractor as ExtractorProtocol
 from maestro.core.protocols import Segmenter as SegmenterProtocol
 from maestro.middleware.wrappers import RateLimited, Traced

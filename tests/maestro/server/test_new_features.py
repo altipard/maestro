@@ -36,7 +36,9 @@ class CapturingCompleter:
         ]
 
     async def complete(
-        self, messages: list[Message], options: CompleteOptions | None = None,
+        self,
+        messages: list[Message],
+        options: CompleteOptions | None = None,
     ) -> AsyncIterator[Completion]:
         self.captured_options = options
         for chunk in self._chunks:
@@ -62,10 +64,13 @@ def _make_client(
 class TestPolicyIntegration:
     def test_noop_policy_allows(self) -> None:
         client, _ = _make_client()
-        resp = client.post("/v1/chat/completions", json={
-            "model": "test-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-        })
+        resp = client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "test-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+            },
+        )
         assert resp.status_code == 200
 
     def test_deny_policy_blocks_chat(self) -> None:
@@ -74,10 +79,13 @@ class TestPolicyIntegration:
                 raise AccessDeniedError("nope")
 
         client, _ = _make_client(policy=DenyAll())
-        resp = client.post("/v1/chat/completions", json={
-            "model": "test-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-        })
+        resp = client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "test-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+            },
+        )
         assert resp.status_code == 404
         assert "not found" in resp.json()["error"]["message"]
 
@@ -87,10 +95,13 @@ class TestPolicyIntegration:
                 raise AccessDeniedError("nope")
 
         client, _ = _make_client(policy=DenyAll())
-        resp = client.post("/v1/responses", json={
-            "model": "test-model",
-            "input": "Hi",
-        })
+        resp = client.post(
+            "/v1/responses",
+            json={
+                "model": "test-model",
+                "input": "Hi",
+            },
+        )
         assert resp.status_code == 404
 
     def test_selective_policy(self) -> None:
@@ -102,10 +113,13 @@ class TestPolicyIntegration:
         client, _ = _make_client(policy=SelectivePolicy())
 
         # Allowed model works
-        resp = client.post("/v1/chat/completions", json={
-            "model": "test-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-        })
+        resp = client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "test-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+            },
+        )
         assert resp.status_code == 200
 
 
@@ -115,22 +129,28 @@ class TestPolicyIntegration:
 class TestVerbosity:
     def test_chat_verbosity_forwarded(self) -> None:
         client, completer = _make_client()
-        client.post("/v1/chat/completions", json={
-            "model": "test-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-            "verbosity": "low",
-        })
+        client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "test-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+                "verbosity": "low",
+            },
+        )
         assert completer.captured_options is not None
         assert completer.captured_options.verbosity is not None
         assert completer.captured_options.verbosity.value == "low"
 
     def test_responses_verbosity_forwarded(self) -> None:
         client, completer = _make_client()
-        client.post("/v1/responses", json={
-            "model": "test-model",
-            "input": "Hi",
-            "text": {"verbosity": "high"},
-        })
+        client.post(
+            "/v1/responses",
+            json={
+                "model": "test-model",
+                "input": "Hi",
+                "text": {"verbosity": "high"},
+            },
+        )
         assert completer.captured_options is not None
         assert completer.captured_options.verbosity is not None
         assert completer.captured_options.verbosity.value == "high"
@@ -142,41 +162,53 @@ class TestVerbosity:
 class TestEffortLevels:
     def test_chat_xhigh_effort(self) -> None:
         client, completer = _make_client()
-        client.post("/v1/chat/completions", json={
-            "model": "test-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-            "reasoning_effort": "xhigh",
-        })
+        client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "test-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+                "reasoning_effort": "xhigh",
+            },
+        )
         assert completer.captured_options is not None
         assert completer.captured_options.effort.value == "max"
 
     def test_chat_none_effort(self) -> None:
         client, completer = _make_client()
-        client.post("/v1/chat/completions", json={
-            "model": "test-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-            "reasoning_effort": "none",
-        })
+        client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "test-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+                "reasoning_effort": "none",
+            },
+        )
         assert completer.captured_options is not None
         assert completer.captured_options.effort.value == "none"
 
     def test_responses_xhigh_effort(self) -> None:
         client, completer = _make_client()
-        client.post("/v1/responses", json={
-            "model": "test-model",
-            "input": "Hi",
-            "reasoning": {"effort": "xhigh"},
-        })
+        client.post(
+            "/v1/responses",
+            json={
+                "model": "test-model",
+                "input": "Hi",
+                "reasoning": {"effort": "xhigh"},
+            },
+        )
         assert completer.captured_options is not None
         assert completer.captured_options.effort.value == "max"
 
     def test_responses_minimal_effort(self) -> None:
         client, completer = _make_client()
-        client.post("/v1/responses", json={
-            "model": "test-model",
-            "input": "Hi",
-            "reasoning": {"effort": "minimal"},
-        })
+        client.post(
+            "/v1/responses",
+            json={
+                "model": "test-model",
+                "input": "Hi",
+                "reasoning": {"effort": "minimal"},
+            },
+        )
         assert completer.captured_options is not None
         assert completer.captured_options.effort.value == "minimal"
 
@@ -187,24 +219,30 @@ class TestEffortLevels:
 class TestParallelToolCalls:
     def test_chat_parallel_disabled(self) -> None:
         client, completer = _make_client()
-        client.post("/v1/chat/completions", json={
-            "model": "test-model",
-            "messages": [{"role": "user", "content": "Hi"}],
-            "tools": [{"type": "function", "function": {"name": "f", "parameters": {}}}],
-            "parallel_tool_calls": False,
-        })
+        client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "test-model",
+                "messages": [{"role": "user", "content": "Hi"}],
+                "tools": [{"type": "function", "function": {"name": "f", "parameters": {}}}],
+                "parallel_tool_calls": False,
+            },
+        )
         assert completer.captured_options is not None
         assert completer.captured_options.tool_options is not None
         assert completer.captured_options.tool_options.disable_parallel_tool_calls is True
 
     def test_responses_parallel_disabled(self) -> None:
         client, completer = _make_client()
-        client.post("/v1/responses", json={
-            "model": "test-model",
-            "input": "Hi",
-            "tools": [{"type": "function", "name": "f", "parameters": {}}],
-            "parallel_tool_calls": False,
-        })
+        client.post(
+            "/v1/responses",
+            json={
+                "model": "test-model",
+                "input": "Hi",
+                "tools": [{"type": "function", "name": "f", "parameters": {}}],
+                "parallel_tool_calls": False,
+            },
+        )
         assert completer.captured_options is not None
         assert completer.captured_options.tool_options is not None
         assert completer.captured_options.tool_options.disable_parallel_tool_calls is True
@@ -225,10 +263,13 @@ class TestIncompleteStatus:
             )
         ]
         client, _ = _make_client(completer=CapturingCompleter(chunks=chunks))
-        resp = client.post("/v1/responses", json={
-            "model": "test-model",
-            "input": "Hi",
-        })
+        resp = client.post(
+            "/v1/responses",
+            json={
+                "model": "test-model",
+                "input": "Hi",
+            },
+        )
         data = resp.json()
         assert data["status"] == "incomplete"
 
@@ -243,11 +284,14 @@ class TestIncompleteStatus:
             )
         ]
         client, _ = _make_client(completer=CapturingCompleter(chunks=chunks))
-        resp = client.post("/v1/responses", json={
-            "model": "test-model",
-            "input": "Hi",
-            "stream": True,
-        })
+        resp = client.post(
+            "/v1/responses",
+            json={
+                "model": "test-model",
+                "input": "Hi",
+                "stream": True,
+            },
+        )
 
         # Parse SSE events
         events = []
@@ -265,30 +309,36 @@ class TestIncompleteStatus:
 class TestStructuredOutput:
     def test_responses_json_object_format(self) -> None:
         client, completer = _make_client()
-        client.post("/v1/responses", json={
-            "model": "test-model",
-            "input": "Hi",
-            "text": {"format": {"type": "json_object"}},
-        })
+        client.post(
+            "/v1/responses",
+            json={
+                "model": "test-model",
+                "input": "Hi",
+                "text": {"format": {"type": "json_object"}},
+            },
+        )
         assert completer.captured_options is not None
         assert completer.captured_options.structured_output is not None
         assert completer.captured_options.structured_output.name == "json_object"
 
     def test_responses_json_schema_format(self) -> None:
         client, completer = _make_client()
-        client.post("/v1/responses", json={
-            "model": "test-model",
-            "input": "Hi",
-            "text": {
-                "format": {
-                    "type": "json_schema",
-                    "name": "my_schema",
-                    "description": "A schema",
-                    "schema": {"type": "object"},
-                    "strict": True,
+        client.post(
+            "/v1/responses",
+            json={
+                "model": "test-model",
+                "input": "Hi",
+                "text": {
+                    "format": {
+                        "type": "json_schema",
+                        "name": "my_schema",
+                        "description": "A schema",
+                        "schema": {"type": "object"},
+                        "strict": True,
+                    },
                 },
             },
-        })
+        )
         opts = completer.captured_options
         assert opts is not None
         assert opts.structured_output is not None
@@ -317,10 +367,13 @@ class TestCacheTokensInServer:
             )
         ]
         client, _ = _make_client(completer=CapturingCompleter(chunks=chunks))
-        resp = client.post("/v1/responses", json={
-            "model": "test-model",
-            "input": "Hi",
-        })
+        resp = client.post(
+            "/v1/responses",
+            json={
+                "model": "test-model",
+                "input": "Hi",
+            },
+        )
         data = resp.json()
         assert data["usage"]["input_tokens"] == 100
         assert data["usage"]["output_tokens"] == 50
