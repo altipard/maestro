@@ -21,7 +21,7 @@ anthropic = ["anthropic>=0.52"]
 google = ["google-genai>=1.0"]
 ollama = ["ollama>=0.4"]
 chroma = ["chromadb>=0.6"]
-grpc = ["grpcio>=1.60"]
+grpc = ["grpcio>=1.60", "protobuf>=5.0"]
 qdrant = ["qdrant-client>=1.12"]
 all = ["maestro[server,openai,anthropic,google,ollama,chroma,grpc]"]
 dev = [
