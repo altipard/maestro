@@ -1,0 +1,48 @@
+// Maestro text segmentation service.
+//
+// Defines the gRPC interface for splitting text into chunks,
+// typically used for RAG pipelines with semantic splitting
+// that respects markdown structure and heading hierarchy.
+
+syntax = "proto3";
+
+package segmenter;
+
+// Segmenter service — accepts text and returns segmented chunks.
+service Segmenter {
+  rpc Segment (SegmentRequest) returns (SegmentResponse) {}
+}
+
+// SegmentRequest wraps a file and optional chunking parameters.
+message SegmentRequest {
+  // The text file to segment.
+  File file = 1;
+
+  // Maximum chunk size in characters (default: 1000).
+  optional int32 segment_length = 2;
+
+  // Overlap between consecutive chunks in characters (default: 0).
+  optional int32 segment_overlap = 3;
+}
+
+// SegmentResponse contains the list of text chunks.
+message SegmentResponse {
+  repeated Segment segments = 1;
+}
+
+// File represents a text file with metadata.
+message File {
+  // Original filename.
+  string name = 1;
+
+  // Raw file content.
+  bytes content = 2;
+
+  // MIME type (e.g. "text/plain", "text/markdown").
+  string content_type = 3;
+}
+
+// Segment is a single text chunk.
+message Segment {
+  string text = 1;
+}

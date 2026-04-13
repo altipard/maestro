@@ -1,0 +1,90 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  REPOSITORY: ghcr.io/daltiparmak/maestro
+
+tasks:
+  server:
+    desc: Start the Maestro server locally
+    dotenv: ['.env']
+    cmds:
+      - uv run python -m maestro --config config.yaml
+
+  run:
+    desc: Start full stack via Docker Compose (platform + chat + extractor + caddy)
+    cmds:
+      - docker compose up --remove-orphans --force-recreate
+
+  test:
+    desc: Run all tests
+    cmds:
+      - uv run pytest tests/ -v
+
+  test-unit:
+    desc: Run unit tests only (no API keys needed)
+    cmds:
+      - uv run pytest tests/ -v --ignore=tests/maestro/providers/openai
+
+  lint:
+    desc: Run linter
+    cmds:
+      - uv run ruff check src/ tests/
+      - uv run ruff format --check src/ tests/
+
+  lint-fix:
+    desc: Run linter with auto-fix
+    cmds:
+      - uv run ruff check --fix src/ tests/
+      - uv run ruff format src/ tests/
+
+  fmt:
+    desc: Auto-format code
+    cmds:
+      - uv run ruff format src/ tests/
+      - uv run ruff check --fix src/ tests/
+
+  publish:
+    desc: Build and push multi-arch Docker image
+    cmds:
+      - docker buildx build . --push --platform linux/amd64,linux/arm64 --tag {{.REPOSITORY}}:latest
+
+  proto:
+    desc: Regenerate protobuf Python files from .proto sources
+    cmds:
+      - uv run python -m grpc_tools.protoc
+          -I=src/maestro/providers/grpc/_proto
+          --python_out=src/maestro/providers/grpc/_proto
+          --pyi_out=src/maestro/providers/grpc/_proto
+          --grpc_python_out=src/maestro/providers/grpc/_proto
+          src/maestro/providers/grpc/_proto/extractor.proto
+          src/maestro/providers/grpc/_proto/segmenter.proto
+    sources:
+      - src/maestro/providers/grpc/_proto/*.proto
+    generates:
+      - src/maestro/providers/grpc/_proto/*_pb2.py
+      - src/maestro/providers/grpc/_proto/*_pb2_grpc.py
+      - src/maestro/providers/grpc/_proto/*_pb2.pyi
+
+  install:
+    desc: Install all dependencies
+    cmds:
+      - uv pip install -e ".[all,dev]"
+
+  example-librechat:
+    desc: Start Maestro + LibreChat full stack example
+    dir: examples/librechat
+    cmds:
+      - docker compose up --remove-orphans --force-recreate
+
+  example-opencode:
+    desc: Start Maestro backend for OpenCode CLI
+    dir: examples/opencode
+    cmds:
+      - docker compose up --remove-orphans --force-recreate
+
+  lgtm:
+    desc: Start Grafana LGTM stack for observability
+    cmds:
+      - docker run -it --rm -p 3000:3000 -p 4317:4317 -p 4318:4318 grafana/otel-lgtm

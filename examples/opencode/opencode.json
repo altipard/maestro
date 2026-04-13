@@ -1,0 +1,36 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "maestro": {
+      "api": "openai",
+      "name": "Maestro",
+      "id": "maestro",
+      "options": {
+        "baseURL": "http://localhost:8080/v1",
+        "apiKey": "local"
+      },
+      "models": {
+        "qwen3": {
+          "id": "qwen3",
+          "name": "Qwen 3 (via Maestro)",
+          "tool_call": true,
+          "temperature": true,
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        },
+        "qwen3-embedding": {
+          "id": "qwen3-embedding",
+          "name": "Qwen 3 Embedding (via Maestro)",
+          "tool_call": false,
+          "temperature": false,
+          "limit": {
+            "context": 8192,
+            "output": 0
+          }
+        }
+      }
+    }
+  }
+}

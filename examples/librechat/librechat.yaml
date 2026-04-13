@@ -1,0 +1,37 @@
+# LibreChat configuration for Maestro integration
+# All LLM traffic routes through Maestro at http://maestro:8080/v1/
+
+version: 1.3.6
+cache: true
+
+interface:
+  customWelcome: 'Welcome to Maestro + LibreChat!'
+  endpointsMenu: true
+  modelSelect: true
+  parameters: true
+  sidePanel: true
+  presets: true
+  bookmarks: true
+  multiConvo: true
+  agents:
+    use: true
+    create: true
+
+registration:
+  socialLogins: []
+
+endpoints:
+  custom:
+    - name: 'Maestro'
+      apiKey: 'not-required'
+      # Inside Docker network, maestro is reachable by service name
+      baseURL: 'http://maestro:8080/v1/'
+      models:
+        default:
+          - 'gemma3:1b'
+          - 'qwen3.5:latest'
+        # fetch: true discovers all models from Maestro's /v1/models
+        fetch: true
+      titleConvo: true
+      titleModel: 'gemma3:1b'
+      modelDisplayLabel: 'Maestro'

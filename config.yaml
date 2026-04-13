@@ -1,0 +1,153 @@
+# ─── Server ──────────────────────────────────────────────────────────
+# Address the server listens on. Format: ":port" or "host:port"
+address: ":8080"
+
+# ─── LLM Providers ──────────────────────────────────────────────────
+# Each provider block configures one vendor with one or more models.
+#
+# Fields:
+#   type    — Provider type: openai, anthropic, google, ollama
+#   url     — API base URL (optional, providers have sensible defaults)
+#   token   — API key (supports ${ENV_VAR} substitution)
+#   limit   — Rate limit in requests/second (optional, applies to all models)
+#   models  — Map of model aliases to optional per-model config:
+#     <alias>:
+#       id:          — Actual model ID (defaults to the alias key)
+#       type:        — Force capability: completer, embedder, renderer, etc.
+#                      (auto-detected from model name if omitted)
+#       limit:       — Per-model rate limit (overrides provider-level)
+providers:
+  # - type: openai
+  #   token: ${OPENAI_API_KEY}
+  #   models:
+  #     gpt-4o:                          # alias = model ID
+  #     gpt-4o-mini:
+  #     text-embedding-3-small:          # auto-detected as embedder
+
+  # - type: anthropic
+  #   token: ${ANTHROPIC_API_KEY}
+  #   models:
+  #     claude-sonnet-4-5-20251022:
+
+  # - type: google
+  #   token: ${GOOGLE_API_KEY}
+  #   models:
+  #     gemini-2.0-flash:
+
+  - type: ollama
+    # url: http://localhost:11434       # default for ollama
+    models:
+      gemma3:1b:
+      qwen3.5:latest:
+
+# ─── Document Extraction ────────────────────────────────────────────
+# Extracts text content from documents (PDF, DOCX, images, emails, etc.)
+# and returns it as markdown. Multiple extractors are tried in order
+# as fallback (multi-extractor).
+#
+# Each entry is a named extractor. The first registered becomes the default.
+#
+# Fields:
+#   type    — Provider type (see below)
+#   url     — Service URL (format depends on type)
+#   token   — API key or auth token (optional, supports ${ENV_VAR})
+#   model   — Model name (only for azure, mistral)
+#   limit   — Rate limit in requests/second (optional)
+#
+# Supported types:
+#   text          — Local text file reader (no external service needed)
+#   tika          — Apache Tika server (PUT to /tika/text)
+#   kreuzberg     — Kreuzberg extraction API (POST multipart)
+#   mistral       — Mistral OCR API (PDF only, base64 upload)
+#   unstructured  — Unstructured.io API (POST multipart)
+#   docling       — IBM Docling API (async polling)
+#   azure         — Azure Document Intelligence (async polling)
+#   grpc          — Custom gRPC extractor service
+
+# extractors:
+#   text-fallback:
+#     type: text
+#
+#   tika:
+#     type: tika
+#     url: http://localhost:9998
+#
+#   kreuzberg:
+#     type: kreuzberg
+#     url: http://localhost:8000
+#     token: ${KREUZBERG_TOKEN}
+#
+#   mistral-ocr:
+#     type: mistral
+#     token: ${MISTRAL_API_KEY}
+#     model: mistral-ocr-latest
+#
+#   unstructured:
+#     type: unstructured
+#     url: https://api.unstructured.io/general/v0/general
+#     token: ${UNSTRUCTURED_API_KEY}
+#
+#   docling:
+#     type: docling
+#     url: http://localhost:5001
+#
+#   azure-doc:
+#     type: azure
+#     url: https://your-instance.cognitiveservices.azure.com
+#     token: ${AZURE_DOC_KEY}
+#     model: prebuilt-layout
+#
+#   grpc-custom:
+#     type: grpc
+#     url: grpc://localhost:50051
+
+# ─── Text Segmentation ─────────────────────────────────────────────
+# Splits text into chunks for RAG pipelines. Supports semantic splitting
+# that respects markdown structure and heading hierarchy.
+#
+# Each entry is a named segmenter. The first registered becomes the default.
+#
+# Fields:
+#   type             — Provider type (see below)
+#   url              — Service URL (format depends on type)
+#   token            — API key or auth token (optional, supports ${ENV_VAR})
+#   segment_length   — Maximum chunk size in characters (default: 1000)
+#   segment_overlap  — Overlap between consecutive chunks (default: 0)
+#   limit            — Rate limit in requests/second (optional)
+#
+# Supported types:
+#   text          — Local markdown/code-aware splitter (no external service)
+#   jina          — Jina Segment API
+#   kreuzberg     — Kreuzberg chunking API
+#   unstructured  — Unstructured.io chunking API
+#   grpc          — Custom gRPC segmenter service
+
+# segmenters:
+#   local:
+#     type: text
+#     segment_length: 1000
+#     segment_overlap: 100
+#
+#   jina:
+#     type: jina
+#     url: https://segment.jina.ai/
+#     token: ${JINA_API_KEY}
+#     segment_length: 1000
+#
+#   kreuzberg:
+#     type: kreuzberg
+#     url: http://localhost:8000
+#     segment_length: 2000
+#     segment_overlap: 200
+#
+#   unstructured:
+#     type: unstructured
+#     url: https://api.unstructured.io
+#     token: ${UNSTRUCTURED_API_KEY}
+#     segment_length: 1000
+#
+#   grpc-custom:
+#     type: grpc
+#     url: grpc://localhost:50052
+#     segment_length: 1000
+#     segment_overlap: 50

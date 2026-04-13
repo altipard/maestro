@@ -1,0 +1,74 @@
+# Maestro backend for OpenCode CLI
+#
+# Usage:
+#   1. docker compose up
+#   2. Copy opencode.json into your project directory
+#   3. Run: opencode
+#
+# Maestro API available at http://localhost:8080/v1/
+
+services:
+  platform:
+    image: ghcr.io/daltiparmak/maestro
+    ports:
+      - "${PORT:-8080}:8080"
+
+    models:
+      - llm
+      - embedding
+
+    configs:
+      - source: platform
+        target: /config.yaml
+
+    restart: unless-stopped
+
+  extractor:
+    image: ghcr.io/daltiparmak/maestro-extractor
+    restart: unless-stopped
+
+models:
+  llm:
+    model: ai/qwen3
+
+  embedding:
+    model: ai/qwen3-embedding
+
+configs:
+  platform:
+    content: |
+      address: ":8080"
+
+      providers:
+        - type: openai-compatible
+          url: $${LLM_URL}
+
+          models:
+            qwen3:
+              id: $${LLM_MODEL}
+
+        - type: openai-compatible
+          url: $${EMBEDDING_URL}
+
+          models:
+            qwen3-embedding:
+              id: $${EMBEDDING_MODEL}
+
+        # OpenRouter — uncomment to add cloud models
+        # - type: openrouter
+        #   token: $${OPENROUTER_API_KEY}
+        #   models:
+        #     deepseek-r1:
+        #       id: deepseek/deepseek-r1
+
+      extractors:
+        text:
+          type: text
+
+        default:
+          type: grpc
+          url: grpc://extractor:50051
+
+      segmenters:
+        default:
+          type: text

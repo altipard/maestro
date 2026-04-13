@@ -1,0 +1,35 @@
+// Maestro document extraction service.
+//
+// Defines the gRPC interface for extracting text content
+// from binary files (PDF, DOCX, images, etc.).
+
+syntax = "proto3";
+
+package extractor;
+
+// Extractor service — accepts a file and returns extracted text.
+service Extractor {
+  rpc Extract (ExtractRequest) returns (Document) {}
+}
+
+// File represents a binary file with metadata.
+message File {
+  // Original filename (e.g. "report.pdf").
+  string name = 1;
+
+  // Raw file content.
+  bytes content = 2;
+
+  // MIME type (e.g. "application/pdf").
+  string content_type = 3;
+}
+
+// ExtractRequest wraps a single file to be processed.
+message ExtractRequest {
+  File file = 1;
+}
+
+// Document contains the extracted text (typically markdown).
+message Document {
+  string text = 1;
+}

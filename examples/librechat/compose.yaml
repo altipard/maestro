@@ -1,0 +1,150 @@
+# Maestro + LibreChat + Extractor full stack
+#
+# Usage:
+#   1. Copy .env.example to .env and fill in your keys
+#   2. docker compose up
+#   3. Open http://localhost:3080 (LibreChat UI)
+#   4. OpenCode CLI connects to http://localhost:8080/v1/
+#
+# Architecture:
+#   LibreChat (UI)  ──▶  Maestro (LLM router)  ──▶  Ollama / OpenAI / OpenRouter / ...
+#   OpenCode (CLI)  ──▶  Maestro (LLM router)  ──▶  same providers
+#
+# LibreChat runs its own MongoDB, Meilisearch, RAG stack.
+# Maestro runs as a standalone OpenAI-compatible API server.
+# Both share the same LLM providers via Maestro.
+
+services:
+  # ── Maestro Platform ──────────────────────────────────────────────
+  maestro:
+    image: ghcr.io/daltiparmak/maestro
+    ports:
+      - "8080:8080"
+    configs:
+      - source: maestro-config
+        target: /config.yaml
+    restart: unless-stopped
+
+  extractor:
+    image: ghcr.io/daltiparmak/maestro-extractor
+    restart: unless-stopped
+
+  # ── LibreChat Stack ───────────────────────────────────────────────
+  librechat:
+    image: registry.librechat.ai/danny-avila/librechat-dev:latest
+    container_name: LibreChat
+    ports:
+      - "3080:3080"
+    depends_on:
+      - mongodb
+      - rag_api
+      - maestro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3080
+      - MONGO_URI=mongodb://mongodb:27017/LibreChat
+      - MEILI_HOST=http://meilisearch:7700
+      - RAG_PORT=8000
+      - RAG_API_URL=http://rag_api:8000
+    volumes:
+      - ./librechat.yaml:/app/librechat.yaml
+      - ./.env:/app/.env
+      - librechat-images:/app/client/public/images
+      - librechat-uploads:/app/uploads
+      - librechat-logs:/app/logs
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:8.0.20
+    volumes:
+      - mongo-data:/data/db
+    command: mongod --noauth
+    restart: unless-stopped
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.35.1
+    environment:
+      - MEILI_HOST=http://meilisearch:7700
+      - MEILI_NO_ANALYTICS=true
+    volumes:
+      - meili-data:/meili_data
+    restart: unless-stopped
+
+  vectordb:
+    image: pgvector/pgvector:0.8.0-pg15-trixie
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  rag_api:
+    image: registry.librechat.ai/danny-avila/librechat-rag-api-dev-lite:latest
+    environment:
+      - DB_HOST=vectordb
+      - RAG_PORT=8000
+    depends_on:
+      - vectordb
+    env_file:
+      - .env
+    restart: unless-stopped
+
+# ── Volumes ─────────────────────────────────────────────────────────
+volumes:
+  mongo-data:
+  meili-data:
+  pgdata:
+  librechat-images:
+  librechat-uploads:
+  librechat-logs:
+
+# ── Configs ─────────────────────────────────────────────────────────
+configs:
+  maestro-config:
+    content: |
+      address: ":8080"
+
+      providers:
+        # Ollama — local models (default, no API key needed)
+        - type: ollama
+          url: http://host.docker.internal:11434
+          models:
+            gemma3:1b:
+            qwen3.5:latest:
+
+        # OpenRouter — 200+ models via one API key (uncomment to enable)
+        # - type: openrouter
+        #   token: $${OPENROUTER_API_KEY}
+        #   models:
+        #     deepseek-r1:
+        #       id: deepseek/deepseek-r1
+        #     llama-4-maverick:
+        #       id: meta-llama/llama-4-maverick
+
+        # OpenAI — direct (uncomment to enable)
+        # - type: openai
+        #   token: $${OPENAI_API_KEY}
+        #   models:
+        #     gpt-4o:
+        #     gpt-4o-mini:
+
+        # Anthropic — direct (uncomment to enable)
+        # - type: anthropic
+        #   token: $${ANTHROPIC_API_KEY}
+        #   models:
+        #     claude-sonnet-4-5-20251022:
+
+      extractors:
+        text:
+          type: text
+        default:
+          type: grpc
+          url: grpc://extractor:50051
+
+      segmenters:
+        default:
+          type: text
