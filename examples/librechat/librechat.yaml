@@ -13,6 +13,7 @@ interface:
   presets: true
   bookmarks: true
   multiConvo: true
+  fileSearch: true
   agents:
     use: true
     create: true
@@ -20,17 +21,33 @@ interface:
 registration:
   socialLogins: []
 
+# RAG configuration
+fileConfig:
+  endpoints:
+    openAI:
+      fileIdName: 'file_id'
+      disabled: false
+    custom:
+      disabled: false
+
 endpoints:
+  openAI:
+    baseURL: 'http://maestro:8080/v1'
+    models:
+      default:
+        - 'gemma3:1b'
+        - 'qwen3.5:latest'
+      fetch: true
+    titleConvo: true
+    titleModel: 'gemma3:1b'
   custom:
     - name: 'Maestro'
       apiKey: 'not-required'
-      # Inside Docker network, maestro is reachable by service name
       baseURL: 'http://maestro:8080/v1/'
       models:
         default:
           - 'gemma3:1b'
           - 'qwen3.5:latest'
-        # fetch: true discovers all models from Maestro's /v1/models
         fetch: true
       titleConvo: true
       titleModel: 'gemma3:1b'

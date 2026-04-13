@@ -87,8 +87,15 @@ services:
     environment:
       - DB_HOST=vectordb
       - RAG_PORT=8000
+      - EMBEDDINGS_PROVIDER=openai
+      - EMBEDDINGS_MODEL=nomic-embed-text
+      - RAG_OPENAI_BASEURL=http://maestro:8080/v1
+      - RAG_OPENAI_API_KEY=not-required
+      - CHUNK_SIZE=1500
+      - CHUNK_OVERLAP=100
     depends_on:
       - vectordb
+      - maestro
     env_file:
       - .env
     restart: unless-stopped
@@ -115,6 +122,7 @@ configs:
           models:
             gemma3:1b:
             qwen3.5:latest:
+            nomic-embed-text:              # embedding model for RAG
 
         # OpenRouter — 200+ models via one API key (uncomment to enable)
         # - type: openrouter
