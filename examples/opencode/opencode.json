@@ -10,9 +10,9 @@
         "apiKey": "local"
       },
       "models": {
-        "qwen3": {
-          "id": "qwen3",
-          "name": "Qwen 3 (via Maestro)",
+        "qwen3.5:latest": {
+          "id": "qwen3.5:latest",
+          "name": "Qwen 3.5 (Ollama local)",
           "tool_call": true,
           "temperature": true,
           "limit": {
@@ -20,14 +20,54 @@
             "output": 8192
           }
         },
-        "qwen3-embedding": {
-          "id": "qwen3-embedding",
-          "name": "Qwen 3 Embedding (via Maestro)",
-          "tool_call": false,
-          "temperature": false,
+        "anthropic/claude-sonnet-4": {
+          "id": "anthropic/claude-sonnet-4",
+          "name": "Claude Sonnet 4 (OpenRouter)",
+          "tool_call": true,
+          "temperature": true,
           "limit": {
-            "context": 8192,
-            "output": 0
+            "context": 200000,
+            "output": 16384
+          }
+        },
+        "google/gemini-2.5-pro-preview": {
+          "id": "google/gemini-2.5-pro-preview",
+          "name": "Gemini 2.5 Pro (OpenRouter)",
+          "tool_call": true,
+          "temperature": true,
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        },
+        "deepseek/deepseek-r1": {
+          "id": "deepseek/deepseek-r1",
+          "name": "DeepSeek R1 (OpenRouter)",
+          "tool_call": true,
+          "temperature": true,
+          "limit": {
+            "context": 65536,
+            "output": 8192
+          }
+        },
+        "openai/gpt-4o": {
+          "id": "openai/gpt-4o",
+          "name": "GPT-4o (OpenRouter)",
+          "tool_call": true,
+          "temperature": true,
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "nvidia/nemotron-3-super-120b-a12b:free": {
+          "id": "nvidia/nemotron-3-super-120b-a12b:free",
+          "name": "Nemotron 3 Super 120B (OpenRouter, free)",
+          "tool_call": true,
+          "temperature": true,
+          "limit": {
+            "context": 32768,
+            "output": 8192
           }
         }
       }

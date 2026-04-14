@@ -20,6 +20,10 @@ services:
     image: ghcr.io/altipard/maestro
     ports:
       - "8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - .env
     configs:
       - source: maestro-config
         target: /config.yaml
@@ -124,27 +128,15 @@ configs:
             qwen3.5:latest:
             nomic-embed-text:              # embedding model for RAG
 
-        # OpenRouter — 200+ models via one API key (uncomment to enable)
-        # - type: openrouter
-        #   token: $${OPENROUTER_API_KEY}
-        #   models:
-        #     deepseek-r1:
-        #       id: deepseek/deepseek-r1
-        #     llama-4-maverick:
-        #       id: meta-llama/llama-4-maverick
-
-        # OpenAI — direct (uncomment to enable)
-        # - type: openai
-        #   token: $${OPENAI_API_KEY}
-        #   models:
-        #     gpt-4o:
-        #     gpt-4o-mini:
-
-        # Anthropic — direct (uncomment to enable)
-        # - type: anthropic
-        #   token: $${ANTHROPIC_API_KEY}
-        #   models:
-        #     claude-sonnet-4-5-20251022:
+        # OpenRouter — cloud models
+        - type: openrouter
+          token: $${OPENROUTER_API_KEY}
+          models:
+            deepseek/deepseek-r1:
+            anthropic/claude-sonnet-4:
+            google/gemini-2.5-pro-preview:
+            openai/gpt-4o:
+            nvidia/nemotron-3-super-120b-a12b:free:
 
       extractors:
         text:
