@@ -112,7 +112,9 @@ class ChatCompletion(BaseModel):
 
 class EmbeddingsRequest(BaseModel):
     model: str = ""
-    input: str | list[str] = ""
+    # All four shapes from the OpenAI Embeddings spec. Token-ID variants are
+    # decoded to text at the API edge (see server/openai/tokens.py).
+    input: str | list[str] | list[int] | list[list[int]] = ""
     dimensions: int | None = None
     encoding_format: str | None = None
 

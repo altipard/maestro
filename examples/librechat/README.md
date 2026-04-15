@@ -75,6 +75,38 @@ OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
+## Using RAG (File Search)
+
+LibreChat's RAG pipeline (`rag_api` → Maestro → embedding model) is **only available through Agents**, not in regular chats. Attaching a file to a normal conversation does *not* index it.
+
+**Setup:**
+
+1. **Embedding model** — already wired in `compose.yaml`'s `maestro-config`:
+   ```yaml
+   - type: ollama
+     models:
+       nomic-embed-text:        # used by rag_api for embeddings
+   ```
+   Make sure it's pulled: `ollama pull nomic-embed-text`.
+
+2. **Create an agent** — Sidebar → *Agenten-Marktplatz* → *Agenten erstellen*:
+   - Endpoint: `Maestro`
+   - Model: any chat model (e.g. `qwen3.5:latest`)
+   - Tools: enable **File Search**
+
+3. **Upload files to that agent** — they go through `rag_api /embed` → Maestro `/v1/embeddings` → Ollama, and land in the pgvector store.
+
+4. **Chat with the agent** — questions trigger `rag_api /query` for retrieval, and the chunks are injected into the prompt.
+
+**Verify the pipeline is working:**
+```bash
+docker compose logs -f rag_api maestro
+# On upload: POST /embed → POST /v1/embeddings 200
+# On query : POST /query → POST /v1/embeddings 200 → POST /v1/chat/completions 200
+```
+
+> **Note on `librechat.yaml`:** the `endpoints.openAI` block is redundant when `endpoints.custom.Maestro` is present — both point to the same backend, and LibreChat routes through the custom one. Removing the `openAI` block keeps the model picker uncluttered.
+
 ## Ports
 
 | Service     | Port  | Purpose                      |

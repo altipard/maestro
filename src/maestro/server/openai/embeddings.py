@@ -19,6 +19,7 @@ from .models import (
     ErrorDetail,
     ErrorResponse,
 )
+from .tokens import normalize_embedding_input
 
 router = APIRouter()
 
@@ -39,11 +40,10 @@ async def create_embeddings(req: EmbeddingsRequest, request: Request) -> JSONRes
     except KeyError:
         return _error(400, f"model not found: {req.model}")
 
-    # Normalize input to list
-    if isinstance(req.input, str):
-        inputs = [req.input]
-    else:
-        inputs = req.input
+    try:
+        inputs, known_token_count = normalize_embedding_input(req.input)
+    except ValueError as e:
+        return _error(400, str(e))
 
     if not inputs:
         return _error(400, "no input provided")
@@ -71,9 +71,11 @@ async def create_embeddings(req: EmbeddingsRequest, request: Request) -> JSONRes
         result.data.append(data)
 
     if embedding.usage:
+        # Prefer the exact count the client already spent on tokenizing.
+        prompt_tokens = known_token_count or embedding.usage.input_tokens
         result.usage = ChatCompletionUsage(
-            prompt_tokens=embedding.usage.input_tokens,
-            total_tokens=embedding.usage.input_tokens + embedding.usage.output_tokens,
+            prompt_tokens=prompt_tokens,
+            total_tokens=prompt_tokens + embedding.usage.output_tokens,
         )
 
     return JSONResponse(content=result.model_dump(exclude_none=True))

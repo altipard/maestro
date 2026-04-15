@@ -17,7 +17,7 @@
 services:
   # ── Maestro Platform ──────────────────────────────────────────────
   maestro:
-    image: ghcr.io/altipard/maestro
+    image: maestro:fix-embed-tokens
     ports:
       - "8080:8080"
     extra_hosts:

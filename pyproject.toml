@@ -15,6 +15,7 @@ server = [
     "python-multipart>=0.0.7",
     "uvicorn[standard]>=0.34",
     "pyyaml>=6.0",
+    "tiktoken>=0.8",
 ]
 openai = ["openai>=1.82"]
 anthropic = ["anthropic>=0.52"]
