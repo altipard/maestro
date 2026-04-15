@@ -9,6 +9,38 @@ Two families:
 
 All methods are `async`. Streaming generators are used where it matters (`Completer`). File I/O uses the shared `FileData` type (bytes + mime-type + optional filename).
 
+## Satellite Services
+
+Pipeline capabilities that need heavy native dependencies (OCR engines, tree-sitter, Rust text splitters, Office parsers) are **not** bundled into the main Maestro process. They live in their own repositories, ship as separate Docker images, and are reached over **gRPC**. Maestro talks to them through the generic `grpc` provider; the contract is the capability protocol, the transport is a `.proto` file.
+
+| Service | Repo | Implements | Default port |
+|---|---|---|---|
+| `maestro-extractor` | [altipard/maestro-extractor](https://github.com/altipard/maestro-extractor) | `Extractor` | `grpc://extractor:50051` |
+| `maestro-segmenter` | [altipard/maestro-segmenter](https://github.com/altipard/maestro-segmenter) | `Segmenter` | `grpc://segmenter:50051` |
+
+Why gRPC for these two in particular:
+
+- **Binary-native payloads** — PDFs, DOCX and images move as raw bytes without Base64 bloat.
+- **Typed contracts** — The `.proto` is the single source of truth; clients in any language get type-safe stubs.
+- **Multiplexing** — HTTP/2 lets Maestro fan out many concurrent extraction/segmentation calls over one connection — important because a single ingest run may trigger hundreds of them.
+- **Swap-in implementations** — Rewrite `maestro-extractor` in Go or Rust tomorrow; the Python Maestro core does not change.
+
+Wire them up in `config.yaml`:
+
+```yaml
+extractors:
+  grpc:
+    type: grpc
+    url: grpc://extractor:50051        # maestro-extractor
+
+segmenters:
+  grpc:
+    type: grpc
+    url: grpc://segmenter:50051        # maestro-segmenter
+```
+
+From here on, everywhere this document lists `Extractor` or `Segmenter` as a pipeline stage, the gRPC satellite is the reference implementation. Local in-process backends (`text`, `tika`, `jina`, …) stay available for lighter setups and tests.
+
 ---
 
 ## Core AI Capabilities
@@ -71,7 +103,7 @@ Pull plain text out of a binary document.
 
 - **Input**: `FileData` (PDF, DOCX, PPTX, HTML, image, …)
 - **Output**: `str` (typically Markdown-ish plain text, layout-aware for good extractors)
-- **Typical backends**: `tika`, `azure` (Document Intelligence), `mistral` (OCR), `docling`, `unstructured`, `kreuzberg`, `grpc` (maestro-extractor)
+- **Typical backends**: `tika`, `azure` (Document Intelligence), `mistral` (OCR), `docling`, `unstructured`, `kreuzberg`, `grpc` → **[maestro-extractor](https://github.com/altipard/maestro-extractor)** (reference satellite, Python + MarkItDown + extract-msg, supports PDF / DOCX / PPTX / XLSX / images / MSG / EML, emits Markdown)
 - **Chains with**: start of any document pipeline — `Extractor` → `Segmenter` → `Embedder` or `Extractor` → `Summarizer`
 
 ### Segmenter
@@ -79,7 +111,7 @@ Split long text into chunks that fit a model's context window and preserve seman
 
 - **Input**: `text: str`
 - **Output**: `list[Segment]` (text + offsets + optional metadata like heading path)
-- **Typical backends**: built-in Markdown/code-aware splitter, `jina` segment API, `unstructured`, `kreuzberg`, tree-sitter for source code
+- **Typical backends**: built-in Markdown/code-aware splitter, `jina` segment API, `unstructured`, `kreuzberg`, tree-sitter for source code, `grpc` → **[maestro-segmenter](https://github.com/altipard/maestro-segmenter)** (reference satellite, Rust-backed [semantic-text-splitter](https://github.com/benbrandt/text-splitter) with Markdown-aware chunking, configurable length/overlap)
 - **Chains with**: `Extractor` → `Segmenter` → `Embedder`; `Transcriber` → `Segmenter` → `Summarizer` (per-chunk summaries, then merge)
 
 ### Searcher
