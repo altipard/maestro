@@ -14,6 +14,15 @@ Any OpenAI-compatible client
 
 Connect **any** client that speaks the OpenAI API — [LibreChat](https://librechat.ai), [OpenCode](https://opencode.ai), [Continue](https://continue.dev), curl — and Maestro handles the rest.
 
+## Capabilities
+
+Maestro is organized around a small set of capability **protocols** that providers implement. Two families:
+
+- **Core AI** — `Completer`, `Embedder`, `Reranker`, `Renderer`, `Synthesizer`, `Transcriber`
+- **Pipeline** — `Extractor`, `Segmenter`, `Searcher`, `Summarizer`, `Translator` (+ `VectorStore` for storage)
+
+These are the atomic building blocks you compose into pipelines like RAG, voice assistants, document summarization, or cross-lingual search. See **[docs/CAPABILITIES.md](docs/CAPABILITIES.md)** for the full reference: input/output of each capability, how they chain, and canonical end-to-end pipelines.
+
 ## Features
 
 - **Multi-provider routing** — Configure multiple LLM providers in one YAML file. Maestro exposes them all through a single `/v1/` endpoint.
