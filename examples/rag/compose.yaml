@@ -1,0 +1,76 @@
+# Maestro RAG example
+#
+# Stack:
+#   - platform   : Maestro gateway (http://localhost:8080/v1/)
+#   - extractor  : maestro-extractor gRPC satellite (PDF, DOCX, images, ...)
+#   - segmenter  : maestro-segmenter gRPC satellite (Markdown-aware chunking)
+#   - chroma     : vector store (http://localhost:8000)
+#
+# Inference runs on the host via Ollama (reached through host.docker.internal).
+# Pull the models first:
+#   ollama pull nomic-embed-text
+#   ollama pull qwen3.5
+#
+# Then:
+#   docker compose up
+#   pip install httpx chromadb
+#   python rag.py ingest path/to/some.pdf
+#   python rag.py ask "what does the document say about X?"
+
+services:
+  platform:
+    image: ghcr.io/altipard/maestro
+    ports:
+      - "${PORT:-8080}:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    configs:
+      - source: maestro-config
+        target: /config.yaml
+    depends_on:
+      - extractor
+      - segmenter
+    restart: unless-stopped
+
+  extractor:
+    image: ghcr.io/altipard/maestro-extractor
+    restart: unless-stopped
+
+  segmenter:
+    image: ghcr.io/altipard/maestro-segmenter
+    restart: unless-stopped
+
+  chroma:
+    image: chromadb/chroma
+    ports:
+      - "${CHROMA_PORT:-8000}:8000"
+    volumes:
+      - chroma-data:/data
+    restart: unless-stopped
+
+volumes:
+  chroma-data:
+
+configs:
+  maestro-config:
+    content: |
+      address: ":8080"
+
+      providers:
+        - type: ollama
+          url: http://host.docker.internal:11434
+          models:
+            qwen3.5:latest:            # answer generation
+            nomic-embed-text:          # embeddings
+
+      extractors:
+        default:
+          type: grpc
+          url: grpc://extractor:50051
+
+      segmenters:
+        default:
+          type: grpc
+          url: grpc://segmenter:50051
+          segment_length: 1000
+          segment_overlap: 100
